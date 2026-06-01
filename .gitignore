@@ -141,3 +141,13 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+node_modules/
+dist/
+.env
+.env.local
+.env.development
+.env.production
+*.pem
+*.key
+*.ppk
