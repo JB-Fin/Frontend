@@ -1,1 +1,28 @@
 /* 히스토리 스타일: 검토 이력 목록과 상세 화면 스타일 정의 */
+.history-page { padding: 32px; }
+.history-table {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+.history-table th {
+  background: var(--light-bg);
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-dark);
+  border-bottom: 1px solid var(--border);
+}
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: var(--light-bg); cursor: pointer; }
