@@ -42,3 +42,19 @@ export default function AIReviewPage() {
     </div>
   )
 }
+
+const handleSubmit = async () => {
+  if (!file) return
+  setLoading(true)
+  setStep(2)
+  try {
+    const { file_name } = await fileApi.upload(file, language)  // 파일 업로드
+    setStep(3)
+    const { review_id } = await reviewApi.analyze(file_name, language)  // 분석 요청
+    navigate(`/review/${review_id}`)
+  } catch (e) {
+    alert('오류가 발생했습니다. 다시 시도해주세요.')
+    setLoading(false)
+    setStep(1)
+  }
+}
