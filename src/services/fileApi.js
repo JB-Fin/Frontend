@@ -3,14 +3,18 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const fileApi = {
   upload: async (file, language) => {
-    // const form = new FormData()
-    // form.append('file', file)
-    // form.append('language', language)
-    // return fetch(`${BASE}/documents/upload`, { method: 'POST', body: form }).then(r => r.json())
-    return { docId: 'doc-001', status: 'pending' }
+    const form = new FormData()
+    form.append('file', file)
+    form.append('language', language)
+    const res = await fetch(`${BASE}/api/v1/files/upload`, {
+      method: 'POST',
+      body: form,
+    })
+    if (!res.ok) throw new Error('업로드 실패')
+    return res.json()  // { file_name, ... } 형태로 받아야 함
   },
-  download: async (docId, type = 'pdf') => {
-    // window.open(`${BASE}/report/${docId}/download?type=${type}`)
-    console.log('[임시] 다운로드:', docId, type)
+
+  download: async (fileName) => {
+    window.open(`${BASE}/api/v1/files/download/${fileName}`)
   },
 }

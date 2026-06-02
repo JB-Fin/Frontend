@@ -3,11 +3,12 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const chatApi = {
   send: async (message) => {
-    // return fetch(`${BASE}/chat`, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ message }),
-    // }).then(r => r.json())
-    return { reply: '문서를 분석하고 있습니다. 잠시만 기다려 주세요.' }
+    const res = await fetch(`${BASE}/api/v1/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    })
+    if (!res.ok) throw new Error('전송 실패')
+    return res.json()  // { reply } 형태로 받아야 함
   },
 }
