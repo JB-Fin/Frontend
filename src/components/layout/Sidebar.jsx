@@ -27,6 +27,7 @@ export default function Sidebar() {
             className={`sidebar__btn${active ? ' active' : ''}`}
           >
             <Icon />
+            <span className="sidebar__label">{label}</span>
           </button>
         )
       })}
