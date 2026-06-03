@@ -74,6 +74,7 @@
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 5px 12px;
+  cursor: pointer;
   transition: background 0.15s;
 }
 .suggestion-chip:hover { background: var(--border); }

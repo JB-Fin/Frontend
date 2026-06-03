@@ -22,14 +22,24 @@ export default function ChatBox() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
-  const handleSend = async () => {
-    if (!input.trim()) return
+  const sendMessage = (text) => {
+    const messageText = String(text ?? '').trim()
+    if (!messageText) return
     const now = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: input, time: now }])
+    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: messageText, time: now }])
     setInput('')
-    const { reply } = await chatApi.send(input)
-    setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', text: reply, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) }])
+    chatApi
+      .send(messageText)
+      .then(({ reply }) => {
+        setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', text: reply, time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) }])
+      })
+      .catch(() => {
+        setMessages(prev => [...prev, { id: Date.now() + 1, role: 'assistant', text: '응답을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.', time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) }])
+      })
   }
+
+  const handleInputSend = () => sendMessage(input)
+  const handleSuggestionSend = (suggestion) => sendMessage(suggestion)
 
   return (
     <div className="chat-panel">
@@ -39,8 +49,8 @@ export default function ChatBox() {
         {messages.map(m => <ChatBubble key={m.id} message={m} />)}
         <div ref={bottomRef} />
       </div>
-      <SuggestionChips suggestions={SUGGESTIONS} onSelect={setInput} />
-      <ChatInput value={input} onChange={setInput} onSend={handleSend} />
+      <SuggestionChips suggestions={SUGGESTIONS} onSelect={handleSuggestionSend} />
+      <ChatInput value={input} onChange={setInput} onSend={handleInputSend} />
     </div>
   )
 }
