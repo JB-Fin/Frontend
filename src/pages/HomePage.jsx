@@ -4,6 +4,7 @@ import Card from '../components/common/Card'
 import Badge from '../components/common/Badge'
 import { dummyWorks } from '../data/dummyWorks'
 import { dummySchedules } from '../data/dummySchedules'
+import { SUPPORTED_LANGUAGES } from '../data/languages'
 import '../styles/home.css'
 
 export default function HomePage() {
@@ -18,7 +19,7 @@ export default function HomePage() {
         <Card>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>언어 선택</div>
           <select style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 8, fontSize: 13, color: 'var(--text-dark)', background: 'var(--white)', outline: 'none' }}>
-            {['한국어', 'English', '日本語', '中文'].map(l => <option key={l}>{l}</option>)}
+            {SUPPORTED_LANGUAGES.map(l => <option key={l}>{l}</option>)}
           </select>
         </Card>
 

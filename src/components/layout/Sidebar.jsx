@@ -16,7 +16,10 @@ export default function Sidebar() {
 
   return (
     <div className="sidebar">
-      <div className="sidebar__logo" onClick={() => navigate('/home')}>JB</div>
+      <div className="sidebar__logo" onClick={() => navigate('/home')}>
+        <span className="sidebar__logo-short">JB</span>
+        <span className="sidebar__logo-full">JB 금융그룹</span>
+      </div>
       {NAV.map(({ id, label, path, icon: Icon }) => {
         const active = pathname.startsWith(path)
         return (
