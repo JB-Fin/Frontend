@@ -5,12 +5,13 @@ import UploadBox from '../components/upload/UploadBox'
 import ReviewStepBar from '../components/upload/ReviewStepBar'
 import Button from '../components/common/Button'
 import { fileApi } from '../services/fileApi'
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '../data/languages'
 import '../styles/review.css'
 
 export default function AIReviewPage() {
   const navigate = useNavigate()
   const [file, setFile] = useState(null)
-  const [language, setLanguage] = useState('한국어')
+  const [language, setLanguage] = useState(DEFAULT_LANGUAGE)
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState(0)
 
@@ -31,7 +32,7 @@ export default function AIReviewPage() {
       <div style={{ marginTop: 20, marginBottom: 28 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>검토 언어 선택</div>
         <div className="lang-chips">
-          {['한국어', 'English', '日本語', '中文'].map(l => (
+          {SUPPORTED_LANGUAGES.map(l => (
             <button key={l} className={`lang-chip${language === l ? ' active' : ''}`} onClick={() => setLanguage(l)}>{l}</button>
           ))}
         </div>

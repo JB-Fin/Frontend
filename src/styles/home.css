@@ -14,12 +14,19 @@
   flex-direction: column;
   padding: 24px;
   min-width: 0;
+  height: 100%;
   overflow: hidden;
+}
+.chat-panel__header {
+  width: min(100%, 720px);
+  margin: 0 auto;
 }
 .chat-panel__heading { font-size: 20px; font-weight: 700; color: var(--navy); }
 .chat-panel__sub     { font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 16px; }
 
 .chat-messages {
+  width: min(100%, 720px);
+  margin: 0 auto;
   flex: 1;
   overflow-y: auto;
   display: flex;
@@ -60,11 +67,14 @@
 .chat-time--user { text-align: right; }
 
 /* 추천 질문 */
+.chat-composer {
+  width: min(100%, 720px);
+  margin: 16px auto 0;
+}
 .suggestions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
   margin-bottom: 12px;
   align-items: center;
 }
@@ -89,7 +99,7 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 8px 8px 8px 14px;
+  padding: 7px 7px 7px 14px;
   box-shadow: var(--shadow-sm);
 }
 .chat-input-bar input {
@@ -110,6 +120,14 @@
   transition: background 0.15s;
 }
 .chat-send-btn:disabled { background: var(--border); cursor: default; }
+
+@media (max-width: 760px) {
+  .chat-panel__header,
+  .chat-messages,
+  .chat-composer {
+    width: 100%;
+  }
+}
 
 /* ─── 우측 패널 ─────────── */
 .right-panel {
