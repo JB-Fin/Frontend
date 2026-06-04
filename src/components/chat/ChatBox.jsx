@@ -42,15 +42,15 @@ export default function ChatBox() {
   const handleSuggestionSend = (suggestion) => sendMessage(suggestion)
 
   return (
-    <div className="chat-panel">
-      <h2 className="chat-panel__heading">규정 기반 AI 어시스턴트</h2>
-      <p className="chat-panel__sub">내부 규정과 외부 법령을 기반으로 문서 준법성을 빠르게 확인하세요.</p>
-      <div className="chat-messages">
-        {messages.map(m => <ChatBubble key={m.id} message={m} />)}
-        <div ref={bottomRef} />
-      </div>
-      <SuggestionChips suggestions={SUGGESTIONS} onSelect={handleSuggestionSend} />
-      <ChatInput value={input} onChange={setInput} onSend={handleInputSend} />
+  <div className="chat-panel" style={{ height: '100%' }}>  {/* ← 추가 */}
+    <h2 className="chat-panel__heading">규정 기반 AI 어시스턴트</h2>
+    <p className="chat-panel__sub">내부 규정과 외부 법령을 기반으로 문서 준법성을 빠르게 확인하세요.</p>
+    <div className="chat-messages">
+      {messages.map(m => <ChatBubble key={m.id} message={m} />)}
+      <div ref={bottomRef} />
     </div>
-  )
+    <SuggestionChips suggestions={SUGGESTIONS} onSelect={handleSuggestionSend} />
+    <ChatInput value={input} onChange={setInput} onSend={handleInputSend} />
+  </div>
+)
 }
