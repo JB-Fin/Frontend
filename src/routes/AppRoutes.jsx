@@ -12,6 +12,7 @@ import HistoryDetailPage from '../pages/HistoryDetailPage'
 import QuestionPage     from '../pages/QuestionPage'
 import SettingsPage     from '../pages/SettingsPage'
 import NotFoundPage     from '../pages/NotFoundPage'
+import NotificationsPage from '../pages/NotificationsPage'
 
 export default function AppRoutes() {
   return (
@@ -55,8 +56,11 @@ export default function AppRoutes() {
 
           {/* 설정 */}
           <Route path="settings" element={<SettingsPage />} />
-        </Route>
 
+          {/* 전체 알림 */}
+          <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
+        
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
