@@ -1,6 +1,10 @@
 /* 개인 페이지 스타일 선언 */
 /* settings.css */
-.settings-page { padding: 32px; max-width: 560px; }
+.settings-page { 
+  padding: 32px;
+  max-width: 720px;
+  width: 100%;
+}
 .settings-section { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 24px; margin-bottom: 16px; }
 .settings-section h3 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 16px; }
 .settings-field { margin-bottom: 14px; }

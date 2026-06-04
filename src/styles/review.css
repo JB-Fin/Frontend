@@ -1,7 +1,8 @@
 /* 검토 스타일 정의: 문서 업로드, AI 검토 결과, 상세 결과 화면 스타일 등을 정의 */
 .page-inner {
   padding: 32px;
-  max-width: 800px;
+  max-width: 1000px;
+  width: 100%;
 }
 .page-title   { font-size: 20px; font-weight: 700; color: var(--navy); }
 .page-sub     { font-size: 13px; color: var(--text-muted); margin-top: 4px; margin-bottom: 24px; }
