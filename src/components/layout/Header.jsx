@@ -1,6 +1,6 @@
 // 헤더 레이아웃 선언
-// 헤더 레이아웃 선언
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { dummyUser } from '../../data/dummyUser'
 import { dummyNotifications } from '../../data/dummyNotifications'
 import '../../styles/layout.css'
@@ -13,13 +13,13 @@ const TYPE_ICON = {
 }
 
 export default function Header() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState(dummyNotifications)
   const dropdownRef = useRef(null)
 
   const unreadCount = notifications.filter(n => !n.read).length
 
-  // 드롭다운 바깥 클릭 시 닫기
   useEffect(() => {
     const handleClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -72,6 +72,7 @@ export default function Header() {
               border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
               boxShadow: 'var(--shadow-md)', zIndex: 100, overflow: 'hidden',
             }}>
+
               {/* 드롭다운 헤더 */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
@@ -116,11 +117,29 @@ export default function Header() {
                   ))
                 )}
               </div>
+
+              {/* 전체보기 버튼 — 드롭다운 안 맨 아래 */}
+              <div
+                onClick={() => { setOpen(false); navigate('/notifications') }}
+                style={{
+                  padding: '12px 16px',
+                  textAlign: 'center',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--sky)',
+                  borderTop: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s',
+                }}
+              >
+                전체보기
+              </div>
+
             </div>
           )}
         </div>
 
-        {/* 기존 유저 정보 — 그대로 유지 */}
+        {/* 유저 정보 */}
         <div className="header__user">
           <div className="header__user-info">
             <div className="header__user-name">{dummyUser.name}</div>
