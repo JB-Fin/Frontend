@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { DragEvent } from 'react';
 import { CheckCircle, Clock, Download, Eye, FileText, Upload } from 'lucide-react';
 
 const recentReviews = [
@@ -27,7 +28,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export function AIReviewPage() {
   const [dragActive, setDragActive] = useState(false);
-  const handleDrag = (event: React.DragEvent) => {
+  const handleDrag = (event: DragEvent) => {
     event.preventDefault();
     setDragActive(event.type === 'dragenter' || event.type === 'dragover');
   };

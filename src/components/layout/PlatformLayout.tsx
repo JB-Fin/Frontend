@@ -6,14 +6,13 @@ import { TopBar } from './TopBar';
 import { pageTitles } from '../../app/pageTitles';
 
 // 1. 페이지 타입 정의 (타입 안전성 확보)
-type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'task-history' | 'internal-investigation' | 'education-content' | 'calendar' | 'settings';
+type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'education-content' | 'task-history' | 'calendar' | 'settings';
 
 const pathToPage: Record<string, PageKey> = {
   '/home': 'home',
   '/question': 'ai-chat',
   '/review': 'ai-review',
   '/history': 'task-history',
-  '/internal-investigation': 'internal-investigation',
   '/education-content': 'education-content',
   '/calendar': 'calendar',
   '/settings': 'settings',
@@ -24,7 +23,6 @@ const pageToPath: Record<PageKey, string> = {
   'ai-chat': '/question',
   'ai-review': '/review',
   'task-history': '/history',
-  'internal-investigation': '/internal-investigation',
   'education-content': '/education-content',
   calendar: '/calendar',
   settings: '/settings',

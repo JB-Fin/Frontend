@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { GripVertical, Info, Maximize2, MoreVertical, RefreshCw, X } from 'lucide-react';
 
@@ -8,7 +9,7 @@ interface DraggableWidgetProps {
   title: string;
   colSpan: number;
   rowSpan: number;
-  children: React.ReactNode;
+  children: ReactNode;
   moveWidget: (dragIndex: number, hoverIndex: number) => void;
   onRemove: () => void;
   onResize: (newColSpan: number, newRowSpan: number) => void;
@@ -49,7 +50,7 @@ export function DraggableWidget({
 
   preview(drop(ref));
 
-  const handleMouseDown = (event: React.MouseEvent, direction: 'right' | 'bottom' | 'corner') => {
+  const handleMouseDown = (event: ReactMouseEvent, direction: 'right' | 'bottom' | 'corner') => {
     event.preventDefault();
 
     const startX = event.clientX;
@@ -57,7 +58,7 @@ export function DraggableWidget({
     const startColSpan = colSpan;
     const startRowSpan = rowSpan;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
       let newColSpan = startColSpan;

@@ -2,7 +2,6 @@ export type WidgetType =
   | 'ai-chat'
   | 'ai-review'
   | 'task-history'
-  | 'internal-investigation'
   | 'education-content'
   | 'calendar'
   | 'notification';

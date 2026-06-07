@@ -1,106 +1,78 @@
-// 로그인 페이지 구현
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { authApi } from '../services/authApi'
-import { useAuth } from '../hooks/useAuth'
-import '../styles/auth.css'
+﻿import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authApi } from '../services/authApi';
+import { useAuth } from '../hooks/useAuth';
+import '../styles/auth.css';
 
 export default function LoginPage() {
-  const navigate = useNavigate()
-  const { login } = useAuth()
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const [id, setId] = useState('')
-  const [pw, setPw] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [id, setId] = useState('');
+  const [pw, setPw] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!id.trim() || !pw.trim()) {
-      setError('아이디와 비밀번호를 입력해주세요.')
-      return
+      setError('아이디와 비밀번호를 입력해 주세요.');
+      return;
     }
 
     try {
-      setLoading(true)
-      setError('')
+      setLoading(true);
+      setError('');
 
-      const { access_token, user } = await authApi.login(
-        id,
-        pw
-      )
-
-      // 인증 상태 저장
-      login(access_token)
-
-      // 사용자 정보 저장
-      localStorage.setItem(
-        'user',
-        JSON.stringify(user)
-      )
-
-      navigate('/home')
+      const { accessToken, user } = await authApi.login(id, pw);
+      login(accessToken);
+      localStorage.setItem('user', JSON.stringify(user));
+      navigate('/home');
     } catch (e) {
-      console.error(e)
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.')
+      console.error(e);
+      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
           <div className="login-logo__icon">JB</div>
-          <span className="login-logo__text">
-            준또배기
-          </span>
+          <span className="login-logo__text">준또배기</span>
         </div>
 
-        <p className="login-subtitle">
-          규정 기반 AI 컴플라이언스 어시스턴트
-        </p>
+        <p className="login-subtitle">규정 기반 AI 컴플라이언스 어시스턴트</p>
 
-        <label className="login-label">
+        <label className="login-label" htmlFor="login-id">
           아이디
         </label>
-
         <input
+          id="login-id"
           className="login-input"
           value={id}
-          onChange={(e) => setId(e.target.value)}
-          onKeyDown={(e) =>
-            e.key === 'Enter' && handleLogin()
-          }
+          onChange={(event) => setId(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && handleLogin()}
           placeholder="사번 또는 아이디"
         />
 
-        <label className="login-label">
+        <label className="login-label" htmlFor="login-password">
           비밀번호
         </label>
-
         <input
+          id="login-password"
           className="login-input"
           type="password"
           value={pw}
-          onChange={(e) => setPw(e.target.value)}
-          onKeyDown={(e) =>
-            e.key === 'Enter' && handleLogin()
-          }
+          onChange={(event) => setPw(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && handleLogin()}
           placeholder="비밀번호"
         />
 
-        {error && (
-          <div className="login-error">
-            {error}
-          </div>
-        )}
+        {error && <div className="login-error">{error}</div>}
 
-        <button
-          className="login-btn"
-          onClick={handleLogin}
-          disabled={loading}
-        >
+        <button className="login-btn" onClick={handleLogin} disabled={loading}>
           {loading ? '로그인 중...' : '로그인'}
         </button>
 
@@ -111,5 +83,5 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }
