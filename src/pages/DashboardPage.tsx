@@ -6,7 +6,6 @@ import { AIChatWidget } from '../components/dashboard/widgets/AIChatWidget';
 import { AIReviewWidget } from '../components/dashboard/widgets/AIReviewWidget';
 import { CalendarWidget } from '../components/dashboard/widgets/CalendarWidget';
 import { EducationContentWidget } from '../components/dashboard/widgets/EducationContentWidget';
-import { InternalInvestigationWidget } from '../components/dashboard/widgets/InternalInvestigationWidget';
 import { NotificationWidget } from '../components/dashboard/widgets/NotificationWidget';
 import { TaskHistoryWidget } from '../components/dashboard/widgets/TaskHistoryWidget';
 import { defaultDashboardWidgets } from '../constants/dashboardWidgets';
@@ -21,8 +20,6 @@ function renderWidgetContent(type: WidgetType, title: string) {
       return <AIReviewWidget />;
     case 'task-history':
       return <TaskHistoryWidget />;
-    case 'internal-investigation':
-      return <InternalInvestigationWidget />;
     case 'education-content':
       return <EducationContentWidget />;
     case 'calendar':
