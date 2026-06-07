@@ -10,6 +10,7 @@ import { InternalInvestigationWidget } from '../components/dashboard/widgets/Int
 import { NotificationWidget } from '../components/dashboard/widgets/NotificationWidget';
 import { TaskHistoryWidget } from '../components/dashboard/widgets/TaskHistoryWidget';
 import { defaultDashboardWidgets } from '../constants/dashboardWidgets';
+import { useNotifications } from '../context/NotificationContext';
 import type { WidgetItem, WidgetType } from '../types/widget';
 
 function renderWidgetContent(type: WidgetType, title: string) {
@@ -36,6 +37,7 @@ function renderWidgetContent(type: WidgetType, title: string) {
 export function DashboardPage() {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [widgets, setWidgets] = useState<WidgetItem[]>(defaultDashboardWidgets);
+  const { notifications } = useNotifications();
 
   const handleAddWidget = (type: WidgetType, title: string, size: { colSpan: number; rowSpan: number }) => {
     setWidgets((prev) => [
@@ -63,20 +65,28 @@ export function DashboardPage() {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between rounded-lg border border-white/20 bg-white/45 p-4 backdrop-blur-sm">
+      {/* 1. 상단 안내 및 제어 바 */}
+      <div className="mb-6 flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
         <p className="text-sm text-gray-600">위젯을 드래그해서 대시보드 레이아웃을 자유롭게 구성하세요.</p>
         <div className="flex gap-2">
-          <button onClick={() => setShowAddPanel(true)} className="flex items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-4 py-2 text-gray-800 shadow-sm transition-all hover:bg-white/90 hover:shadow-md">
+          <button 
+            onClick={() => setShowAddPanel(true)} 
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition-all hover:bg-gray-50"
+          >
             <Plus className="h-4 w-4" />
             위젯 추가
           </button>
-          <button onClick={() => setWidgets(defaultDashboardWidgets)} className="flex items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-4 py-2 text-gray-800 shadow-sm transition-all hover:bg-white/90 hover:shadow-md">
+          <button 
+            onClick={() => setWidgets(defaultDashboardWidgets)} 
+            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition-all hover:bg-gray-50"
+          >
             <RotateCcw className="h-4 w-4" />
             초기화
           </button>
         </div>
       </div>
 
+      {/* 2. 위젯 그리드 영역 */}
       <div className="grid grid-cols-4 gap-3 auto-rows-[80px]">
         {[...widgets]
           .sort((a, b) => a.order - b.order)
@@ -97,18 +107,23 @@ export function DashboardPage() {
           ))}
       </div>
 
+      {/* 3. 위젯이 없을 때 노출되는 빈 화면 안내 */}
       {widgets.length === 0 && (
         <div className="flex min-h-[400px] items-center justify-center">
-          <div className="rounded-lg border border-white/60 bg-white/70 p-12 text-center text-gray-600 shadow-lg backdrop-blur-md">
-            <Plus className="mx-auto mb-4 h-16 w-16 opacity-50" />
-            <p className="mb-4 text-lg text-gray-700">위젯을 추가하여 대시보드를 구성하세요.</p>
-            <button onClick={() => setShowAddPanel(true)} className="rounded-lg bg-blue-600 px-6 py-3 text-white shadow-md transition-colors hover:bg-blue-700">
+          <div className="rounded-lg border border-gray-200 bg-white p-12 text-center text-gray-600 shadow-md">
+            <Plus className="mx-auto mb-4 h-16 w-16 opacity-40 text-gray-400" />
+            <p className="mb-4 text-lg font-medium text-gray-700">위젯을 추가하여 대시보드를 구성하세요.</p>
+            <button 
+              onClick={() => setShowAddPanel(true)} 
+              className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            >
               위젯 추가
             </button>
           </div>
         </div>
       )}
 
+      {/* 4. 위젯 추가 사이드 패널 */}
       <AddWidgetSidePanel isOpen={showAddPanel} onClose={() => setShowAddPanel(false)} onAddWidget={handleAddWidget} />
     </>
   );
