@@ -1,28 +1,41 @@
-// 헤더 레이아웃 선언
-import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { dummyUser } from '../../data/dummyUser'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { dummyNotifications } from '../../data/dummyNotifications'
+import { dummyUser } from '../../data/dummyUser'
 import '../../styles/layout.css'
 
+const PAGE_TITLES = {
+  '/home': '대시보드',
+  '/review': 'AI 검토',
+  '/history': '작업 이력',
+  '/question': 'AI 채팅',
+  '/internal-investigation': '내부 조사 지원',
+  '/education-content': '교육 자료 제작',
+  '/calendar': '캘린더',
+  '/settings': '설정',
+  '/notifications': '알림',
+}
+
 const TYPE_ICON = {
-  done:       '✅',
-  error:      '❌',
-  regulation: '📋',
-  schedule:   '📅',
+  done: '✓',
+  error: '!',
+  regulation: '§',
+  schedule: '•',
 }
 
 export default function Header() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState(dummyNotifications)
   const dropdownRef = useRef(null)
 
+  const currentPath = Object.keys(PAGE_TITLES).find(path => pathname.startsWith(path))
   const unreadCount = notifications.filter(n => !n.read).length
 
   useEffect(() => {
-    const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    const handleClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setOpen(false)
       }
     }
@@ -31,115 +44,73 @@ export default function Header() {
   }, [])
 
   const handleRead = (id) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    setNotifications(prev => prev.map(item => item.id === id ? { ...item, read: true } : item))
   }
 
   const handleReadAll = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    setNotifications(prev => prev.map(item => ({ ...item, read: true })))
   }
 
   return (
-    <div className="header">
-      <span className="header__title">준또배기</span>
+    <header className="header">
+      <div>
+        <div className="header__eyebrow">JB 금융그룹 컴플라이언스 AI</div>
+        <h1 className="header__title">{PAGE_TITLES[currentPath] ?? '업무 공간'}</h1>
+      </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-
-        {/* 🔔 알림 버튼 */}
-        <div ref={dropdownRef} style={{ position: 'relative' }}>
+      <div className="header__actions">
+        <div ref={dropdownRef} className="notification-menu">
           <button
-            onClick={() => setOpen(v => !v)}
-            style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontSize: 20, lineHeight: 1 }}
+            type="button"
+            className="header__icon-btn"
+            onClick={() => setOpen(value => !value)}
+            aria-label="알림 열기"
           >
-            🔔
-            {unreadCount > 0 && (
-              <span style={{
-                position: 'absolute', top: 0, right: 0,
-                width: 16, height: 16, borderRadius: '50%',
-                background: '#E53E3E', color: 'white',
-                fontSize: 10, fontWeight: 700,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {unreadCount}
-              </span>
-            )}
+            <BellIcon />
+            {unreadCount > 0 && <span className="header__badge">{unreadCount}</span>}
           </button>
 
-          {/* 드롭다운 */}
           {open && (
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 10px)', right: 0,
-              width: 320, background: 'var(--white)',
-              border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-              boxShadow: 'var(--shadow-md)', zIndex: 100, overflow: 'hidden',
-            }}>
-
-              {/* 드롭다운 헤더 */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--navy)' }}>
-                  알림 {unreadCount > 0 && <span style={{ color: '#E53E3E' }}>({unreadCount})</span>}
-                </span>
+            <div className="notification-menu__panel">
+              <div className="notification-menu__head">
+                <strong>최근 알림</strong>
                 {unreadCount > 0 && (
-                  <button onClick={handleReadAll} style={{ fontSize: 12, color: 'var(--sky)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                    전체 읽음
+                  <button type="button" onClick={handleReadAll}>모두 읽음</button>
+                )}
+              </div>
+
+              <div className="notification-menu__list">
+                {notifications.map(item => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={`notification-menu__item${item.read ? '' : ' unread'}`}
+                    onClick={() => handleRead(item.id)}
+                  >
+                    <span className="notification-menu__icon">{TYPE_ICON[item.type]}</span>
+                    <span>
+                      <span className="notification-menu__title">{item.title}</span>
+                      <span className="notification-menu__desc">{item.desc}</span>
+                      <span className="notification-menu__time">{item.time}</span>
+                    </span>
                   </button>
-                )}
+                ))}
               </div>
 
-              {/* 알림 목록 */}
-              <div style={{ maxHeight: 360, overflowY: 'auto' }}>
-                {notifications.length === 0 ? (
-                  <div style={{ padding: '32px 16px', textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
-                    알림이 없습니다
-                  </div>
-                ) : (
-                  notifications.map(n => (
-                    <div
-                      key={n.id}
-                      onClick={() => handleRead(n.id)}
-                      style={{
-                        display: 'flex', gap: 12, alignItems: 'flex-start',
-                        padding: '12px 16px',
-                        background: n.read ? 'var(--white)' : 'var(--light-bg)',
-                        borderBottom: '1px solid var(--border)',
-                        cursor: 'pointer', transition: 'background 0.15s',
-                      }}
-                    >
-                      <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{TYPE_ICON[n.type]}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                          <span style={{ fontSize: 13, fontWeight: n.read ? 400 : 700, color: 'var(--text-dark)' }}>{n.title}</span>
-                          {!n.read && <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--sky)', flexShrink: 0 }} />}
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.5 }}>{n.desc}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{n.time}</div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* 전체보기 버튼 — 드롭다운 안 맨 아래 */}
-              <div
-                onClick={() => { setOpen(false); navigate('/notifications') }}
-                style={{
-                  padding: '12px 16px',
-                  textAlign: 'center',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--sky)',
-                  borderTop: '1px solid var(--border)',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s',
+              <button
+                type="button"
+                className="notification-menu__more"
+                onClick={() => {
+                  setOpen(false)
+                  navigate('/notifications')
                 }}
               >
-                전체보기
-              </div>
-
+                전체 알림 보기
+              </button>
             </div>
           )}
         </div>
 
-        {/* 유저 정보 */}
         <div className="header__user">
           <div className="header__user-info">
             <div className="header__user-name">{dummyUser.name}</div>
@@ -147,8 +118,11 @@ export default function Header() {
           </div>
           <div className="header__avatar">{dummyUser.name[0]}</div>
         </div>
-
       </div>
-    </div>
+    </header>
   )
+}
+
+function BellIcon() {
+  return <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
 }
