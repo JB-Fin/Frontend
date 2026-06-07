@@ -1,11 +1,20 @@
-import { useState } from 'react';
-import { Bot, MessageSquare, Send, TrendingUp, User } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Bot, MessageSquare, Pin, Plus, Search, Send, User } from 'lucide-react';
 
 type ChatMessage = {
   id: number;
   type: 'ai' | 'user';
   text: string;
   timestamp: string;
+};
+
+type ChatSession = {
+  id: number;
+  title: string;
+  messages: ChatMessage[];
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 const suggestedQuestions = [
@@ -15,40 +24,123 @@ const suggestedQuestions = [
   '내부통제 시스템 운영 가이드라인',
 ];
 
-const recentTopics = [
-  { title: 'AML 규정', count: 12 },
-  { title: 'KYC 절차', count: 8 },
-  { title: '내부통제', count: 6 },
-];
+function now() {
+  return new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function createWelcomeMessage(): ChatMessage {
+  return {
+    id: Date.now(),
+    type: 'ai',
+    text: '안녕하세요. JB금융그룹 컴플라이언스 AI 어시스턴트입니다. 규정, 법령, 내부 정책에 대해 무엇이든 물어보세요.',
+    timestamp: now(),
+  };
+}
+
+function createSession(id: number): ChatSession {
+  const createdAt = now();
+  return {
+    id,
+    title: '새 대화',
+    messages: [createWelcomeMessage()],
+    pinned: false,
+    createdAt,
+    updatedAt: createdAt,
+  };
+}
+
+function deriveTitle(messages: ChatMessage[]) {
+  const firstUserMessage = messages.find((message) => message.type === 'user');
+  if (!firstUserMessage) return '새 대화';
+  return firstUserMessage.text.length > 24 ? `${firstUserMessage.text.slice(0, 24)}...` : firstUserMessage.text;
+}
 
 export function AIChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 1,
-      type: 'ai',
-      text: '안녕하세요. JB금융그룹 컴플라이언스 AI 어시스턴트입니다. 규정, 법령, 내부 정책에 대해 무엇이든 물어보세요.',
-      timestamp: '14:30',
-    },
-  ]);
+  const nextSessionId = useRef(2);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const [sessions, setSessions] = useState<ChatSession[]>(() => [createSession(1)]);
+  const [activeSessionId, setActiveSessionId] = useState(1);
   const [input, setInput] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const timestamp = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-    setMessages((prev) => [...prev, { id: Date.now(), type: 'user', text: input, timestamp }]);
+  const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
+  const messages = activeSession?.messages ?? [];
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const updateSession = (sessionId: number, updater: (session: ChatSession) => Partial<ChatSession>) => {
+    setSessions((current) =>
+      current.map((session) => (session.id === sessionId ? { ...session, ...updater(session) } : session)),
+    );
+  };
+
+  const handleSend = (textOverride?: string) => {
+    const messageText = (textOverride ?? input).trim();
+    if (!messageText || !activeSession) return;
+
+    const sessionId = activeSession.id;
+    const timestamp = now();
+    const userMessage: ChatMessage = {
+      id: Date.now(),
+      type: 'user',
+      text: messageText,
+      timestamp,
+    };
+
+    updateSession(sessionId, (session) => {
+      const nextMessages = [...session.messages, userMessage];
+      return {
+        messages: nextMessages,
+        title: deriveTitle(nextMessages),
+        updatedAt: timestamp,
+      };
+    });
     setInput('');
+
     setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          type: 'ai',
-          text: '관련 규정과 내부 문서를 검색하고 있습니다.\n\n검토 결과 예시는 다음과 같습니다.\n\n1. 금융상품 판매 전 적합성 원칙 준수\n2. 고객 정보 보호 의무 확인\n3. 불완전판매 방지 조치 점검\n\n자세한 내용은 관련 규정 문서를 확인해 주세요.',
-          timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
+      const replyTime = now();
+      const aiMessage: ChatMessage = {
+        id: Date.now() + 1,
+        type: 'ai',
+        text: '관련 규정과 내부 문서를 검색하고 있습니다.\n\n검토 결과 예시는 다음과 같습니다.\n\n1. 금융상품 판매 전 적합성 원칙 준수\n2. 고객 정보 보호 의무 확인\n3. 불완전판매 방지 조치 점검\n\n자세한 내용은 관련 규정 문서를 확인해 주세요.',
+        timestamp: replyTime,
+      };
+
+      updateSession(sessionId, (session) => ({
+        messages: [...session.messages, aiMessage],
+        updatedAt: replyTime,
+      }));
     }, 1000);
   };
+
+  const handleNewSession = () => {
+    const newSession = createSession(nextSessionId.current);
+    nextSessionId.current += 1;
+    setSessions((current) => [newSession, ...current]);
+    setActiveSessionId(newSession.id);
+    setInput('');
+  };
+
+  const handleTogglePin = (sessionId: number) => {
+    updateSession(sessionId, (session) => ({ pinned: !session.pinned }));
+  };
+
+  const filteredSessions = useMemo(() => {
+    const keyword = historySearch.trim().toLowerCase();
+    const matched = keyword
+      ? sessions.filter((session) => {
+          const haystack = [session.title, ...session.messages.map((message) => message.text)].join(' ').toLowerCase();
+          return haystack.includes(keyword);
+        })
+      : sessions;
+
+    return [...matched].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.id - a.id);
+  }, [historySearch, sessions]);
+
+  const pinnedSessions = filteredSessions.filter((session) => session.pinned);
+  const recentSessions = filteredSessions.filter((session) => !session.pinned);
 
   return (
     <div className="flex h-[calc(100vh-150px)] gap-6">
@@ -64,6 +156,7 @@ export function AIChatPage() {
             </div>
           </div>
         </div>
+
         <div className="flex-1 space-y-6 overflow-y-auto p-6">
           {messages.map((message) => (
             <div key={message.id} className={`flex gap-4 ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -81,63 +174,140 @@ export function AIChatPage() {
               </div>
             </div>
           ))}
+          <div ref={bottomRef} />
         </div>
+
         {messages.length === 1 && (
           <div className="px-6 pb-4">
             <p className="mb-3 text-sm font-medium text-gray-600">추천 질문</p>
             <div className="grid grid-cols-2 gap-2">
               {suggestedQuestions.map((question) => (
-                <button key={question} onClick={() => setInput(question)} className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-4 py-3 text-left text-sm text-blue-700 transition-colors hover:bg-blue-100/80">
+                <button key={question} type="button" onClick={() => handleSend(question)} className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-4 py-3 text-left text-sm text-blue-700 transition-colors hover:bg-blue-100/80">
                   {question}
                 </button>
               ))}
             </div>
           </div>
         )}
+
         <div className="border-t border-gray-200/50 bg-white/60 px-6 py-4">
           <div className="flex gap-3">
-            <input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && handleSend()} placeholder="컴플라이언스 관련 질문을 입력하세요..." className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-5 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
-            <button onClick={handleSend} disabled={!input.trim()} className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">
+            <input
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={(event) => event.key === 'Enter' && handleSend()}
+              placeholder="컴플라이언스 관련 질문을 입력하세요..."
+              className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-5 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+            />
+            <button type="button" onClick={() => handleSend()} disabled={!input.trim()} className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">
               <Send className="h-5 w-5" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="w-80 space-y-4">
-        <div className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-          <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-            오늘의 활동
-          </h3>
-          <div className="space-y-3">
-            {[
-              ['총 질문 수', '24', 'text-gray-900'],
-              ['평균 응답 시간', '1.2초', 'text-blue-600'],
-              ['만족도', '95%', 'text-green-600'],
-            ].map(([label, value, color]) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">{label}</span>
-                <span className={`text-lg font-bold ${color}`}>{value}</span>
-              </div>
-            ))}
+      <aside className="flex w-80 flex-col overflow-hidden rounded-lg border border-white/60 bg-white/85 shadow-lg backdrop-blur-xl">
+        <div className="border-b border-gray-200/50 p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="flex items-center gap-2 font-bold text-gray-900">
+              <MessageSquare className="h-5 w-5 text-indigo-600" />
+              채팅 목록
+            </h3>
+            <button type="button" onClick={handleNewSession} className="rounded-lg border border-blue-200/70 bg-blue-50 p-2 text-blue-700 transition-colors hover:bg-blue-100" title="새 채팅" aria-label="새 채팅">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={historySearch}
+              onChange={(event) => setHistorySearch(event.target.value)}
+              placeholder="과거 채팅 검색"
+              className="w-full rounded-lg border border-gray-200/60 bg-white/90 py-2.5 pl-9 pr-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
           </div>
         </div>
-        <div className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-          <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
-            <MessageSquare className="h-5 w-5 text-indigo-600" />
-            자주 묻는 주제
-          </h3>
-          <div className="space-y-2">
-            {recentTopics.map((topic) => (
-              <div key={topic.title} className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200/50 bg-white/90 p-3 transition-all hover:shadow-md">
-                <span className="text-sm text-gray-900">{topic.title}</span>
-                <span className="rounded-lg bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">{topic.count}건</span>
-              </div>
-            ))}
-          </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <ChatSessionSection
+            title="고정됨"
+            emptyText={historySearch ? '검색된 고정 채팅이 없습니다.' : '핀 고정한 채팅이 없습니다.'}
+            sessions={pinnedSessions}
+            activeSessionId={activeSessionId}
+            onSelect={setActiveSessionId}
+            onTogglePin={handleTogglePin}
+          />
+
+          <div className="my-4 border-t border-gray-200/60" />
+
+          <ChatSessionSection
+            title="최근 채팅"
+            emptyText={historySearch ? '검색된 채팅이 없습니다.' : '아직 과거 채팅이 없습니다.'}
+            sessions={recentSessions}
+            activeSessionId={activeSessionId}
+            onSelect={setActiveSessionId}
+            onTogglePin={handleTogglePin}
+          />
         </div>
-      </div>
+      </aside>
     </div>
+  );
+}
+
+type ChatSessionSectionProps = {
+  title: string;
+  emptyText: string;
+  sessions: ChatSession[];
+  activeSessionId: number;
+  onSelect: (sessionId: number) => void;
+  onTogglePin: (sessionId: number) => void;
+};
+
+function ChatSessionSection({ title, emptyText, sessions, activeSessionId, onSelect, onTogglePin }: ChatSessionSectionProps) {
+  return (
+    <section>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
+      {sessions.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-gray-200/80 bg-white/50 px-3 py-4 text-center text-xs text-gray-500">{emptyText}</p>
+      ) : (
+        <div className="space-y-2">
+          {sessions.map((session) => (
+            <div
+              key={session.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelect(session.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onSelect(session.id);
+                }
+              }}
+              className={`group w-full rounded-lg border p-3 text-left transition-all ${session.id === activeSessionId ? 'border-blue-300 bg-blue-50/90 shadow-sm' : 'border-gray-200/60 bg-white/80 hover:border-blue-200 hover:bg-blue-50/40'}`}
+            >
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-gray-900">{session.title}</p>
+                  <p className="mt-1 truncate text-xs text-gray-600">{session.messages[session.messages.length - 1]?.text}</p>
+                  <p className="mt-2 text-xs text-gray-400">{session.updatedAt}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onTogglePin(session.id);
+                  }}
+                  className={`rounded-md p-1.5 transition-colors ${session.pinned ? 'bg-blue-100 text-blue-700' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}
+                  title={session.pinned ? '핀 고정 해제' : '핀 고정'}
+                  aria-label={session.pinned ? '핀 고정 해제' : '핀 고정'}
+                >
+                  <Pin className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bot, Send, User } from 'lucide-react';
 
 type ChatMessage = {
@@ -14,10 +14,16 @@ export function AIChatWidget() {
     { id: 1, type: 'ai', text: '안녕하세요! JB금융그룹 컴플라이언스 AI 어시스턴트입니다. 무엇을 도와드릴까요?' },
   ]);
   const [input, setInput] = useState('');
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages((prev) => [...prev, { id: Date.now(), type: 'user', text: input }]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSend = (textOverride?: string) => {
+    const messageText = (textOverride ?? input).trim();
+    if (!messageText) return;
+    setMessages((prev) => [...prev, { id: Date.now(), type: 'user', text: messageText }]);
     setInput('');
     setTimeout(() => {
       setMessages((prev) => [...prev, { id: Date.now() + 1, type: 'ai', text: '해당 내용에 대해 검토 중입니다. 잠시만 기다려주세요.' }]);
@@ -39,6 +45,7 @@ export function AIChatWidget() {
             </div>
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
       {messages.length === 1 && (
@@ -46,7 +53,7 @@ export function AIChatWidget() {
           <p className="mb-2 text-xs text-gray-600">추천 질문:</p>
           <div className="flex flex-wrap gap-2">
             {suggestedQuestions.map((question) => (
-              <button key={question} onClick={() => setInput(question)} className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-100/80">
+              <button key={question} type="button" onClick={() => handleSend(question)} className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-100/80">
                 {question}
               </button>
             ))}
@@ -56,7 +63,7 @@ export function AIChatWidget() {
 
       <div className="flex gap-2">
         <input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && handleSend()} placeholder="질문을 입력하세요..." className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-4 py-2 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
-        <button onClick={handleSend} className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white transition-all hover:shadow-lg">
+        <button type="button" onClick={() => handleSend()} className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white transition-all hover:shadow-lg">
           <Send className="h-4 w-4" />
         </button>
       </div>
