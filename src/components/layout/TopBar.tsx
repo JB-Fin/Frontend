@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, Globe, User } from 'lucide-react';
+import { useNotifications } from '../../context/NotificationContext';
 
 type TopBarMenu = 'language' | 'notifications' | 'profile' | null;
 
@@ -9,15 +11,13 @@ const languages = [
   { code: 'ja', name: '日本語' },
 ];
 
-const notifications = [
-  { id: 1, title: '새로운 규정 업데이트', time: '5분 전', unread: true },
-  { id: 2, title: 'AI 검토 완료', time: '1시간 전', unread: true },
-  { id: 3, title: '승인 요청', time: '2시간 전', unread: false },
-];
-
 export function TopBar() {
   const [openMenu, setOpenMenu] = useState<TopBarMenu>(null);
   const [currentLang, setCurrentLang] = useState('한국어');
+  
+  // ⚡ Context로부터 실시간 데이터와 함수를 가져옵니다.
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const navigate = useNavigate();
 
   const toggleMenu = (menu: TopBarMenu) => {
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -25,6 +25,7 @@ export function TopBar() {
 
   return (
     <div className="flex items-center gap-3">
+      {/* 언어 선택 메뉴 */}
       <div className="relative">
         <button
           onClick={() => toggleMenu('language')}
@@ -55,6 +56,7 @@ export function TopBar() {
         )}
       </div>
 
+      {/* 알림 메뉴 */}
       <div className="relative">
         <button
           onClick={() => toggleMenu('notifications')}
@@ -62,35 +64,46 @@ export function TopBar() {
           aria-label="알림"
         >
           <Bell className="h-5 w-5 text-gray-700" />
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold">
+              {unreadCount}
+            </span>
+          )}
         </button>
         {openMenu === 'notifications' && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
             <div className="absolute right-0 z-20 mt-2 w-80 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
-                <h3 className="font-medium text-gray-900">알림</h3>
+                <h3 className="font-medium text-gray-900">알림 ({unreadCount})</h3>
               </div>
               <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notification) => (
+                {notifications.map((n) => (
                   <div
-                    key={notification.id}
-                    className={`border-b border-gray-100/50 px-4 py-3 transition-colors hover:bg-blue-50/50 ${
-                      notification.unread ? 'bg-blue-50/30' : ''
+                    key={n.id}
+                    onClick={() => markAsRead(n.id)} // ⚡ 클릭 시 읽음 처리 동기화
+                    className={`border-b border-gray-100/50 px-4 py-3 transition-colors cursor-pointer hover:bg-blue-50/50 ${
+                      n.isRead ? 'opacity-50' : 'bg-blue-50/30'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm text-gray-900">{notification.title}</p>
-                        <p className="mt-1 text-xs text-gray-600">{notification.time}</p>
+                        <p className="text-sm text-gray-900">{n.title}</p>
+                        <p className="mt-1 text-xs text-gray-600">{n.time}</p>
                       </div>
-                      {notification.unread && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600" />}
+                      {!n.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600" />}
                     </div>
                   </div>
                 ))}
               </div>
               <div className="border-t border-gray-200/50 px-4 py-2">
-                <button className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                <button 
+                  onClick={() => {
+                    navigate('/notifications');
+                    setOpenMenu(null);
+                  }}
+                  className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
                   모두 보기
                 </button>
               </div>
@@ -99,6 +112,7 @@ export function TopBar() {
         )}
       </div>
 
+      {/* 프로필 메뉴 */}
       <div className="relative">
         <button
           onClick={() => toggleMenu('profile')}
