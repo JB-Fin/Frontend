@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { dummyNotifications } from '../../data/dummyNotifications'
+import { useNotifications } from '../../context/NotificationContext'  // ← 추가
 import { dummyUser } from '../../data/dummyUser'
 import '../../styles/layout.css'
 
@@ -17,21 +17,20 @@ const PAGE_TITLES = {
 }
 
 const TYPE_ICON = {
-  done: '✓',
-  error: '!',
+  done:       '✓',
+  error:      '!',
   regulation: '§',
-  schedule: '•',
+  schedule:   '•',
 }
 
 export default function Header() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const { notifications, markRead, markAllRead, unreadCount } = useNotifications()  // ← 교체
   const [open, setOpen] = useState(false)
-  const [notifications, setNotifications] = useState(dummyNotifications)
   const dropdownRef = useRef(null)
 
   const currentPath = Object.keys(PAGE_TITLES).find(path => pathname.startsWith(path))
-  const unreadCount = notifications.filter(n => !n.read).length
 
   useEffect(() => {
     const handleClick = (event) => {
@@ -42,14 +41,6 @@ export default function Header() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
-
-  const handleRead = (id) => {
-    setNotifications(prev => prev.map(item => item.id === id ? { ...item, read: true } : item))
-  }
-
-  const handleReadAll = () => {
-    setNotifications(prev => prev.map(item => ({ ...item, read: true })))
-  }
 
   return (
     <header className="header">
@@ -75,7 +66,7 @@ export default function Header() {
               <div className="notification-menu__head">
                 <strong>최근 알림</strong>
                 {unreadCount > 0 && (
-                  <button type="button" onClick={handleReadAll}>모두 읽음</button>
+                  <button type="button" onClick={markAllRead}>모두 읽음</button>
                 )}
               </div>
 
@@ -85,7 +76,7 @@ export default function Header() {
                     type="button"
                     key={item.id}
                     className={`notification-menu__item${item.read ? '' : ' unread'}`}
-                    onClick={() => handleRead(item.id)}
+                    onClick={() => markRead(item.id)}
                   >
                     <span className="notification-menu__icon">{TYPE_ICON[item.type]}</span>
                     <span>

@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { NotificationProvider } from '../context/NotificationContext'  // ← 추가
 import AppLayout from '../components/layout/AppLayout'
 import ProtectedRoute from '../components/layout/ProtectedRoute'
 
@@ -19,34 +20,36 @@ import SettingsPage from '../pages/SettingsPage'
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LoginPage />} />
+      <NotificationProvider>  {/* ← 추가 */}
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<LoginPage />} />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="home" element={<HomePage />} />
-          <Route path="review" element={<AIReviewPage />} />
-          <Route path="review/:docId" element={<ReviewDetailPage />} />
-          <Route path="history" element={<HistoryPage />} />
-          <Route path="history/:docId" element={<Navigate to="result" replace />} />
-          <Route path="history/:docId/:tab" element={<HistoryDetailPage />} />
-          <Route path="question" element={<QuestionPage />} />
-          <Route path="internal-investigation" element={<InternalInvestigationPage />} />
-          <Route path="education-content" element={<EducationContentPage />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-        </Route>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="home" element={<HomePage />} />
+            <Route path="review" element={<AIReviewPage />} />
+            <Route path="review/:docId" element={<ReviewDetailPage />} />
+            <Route path="history" element={<HistoryPage />} />
+            <Route path="history/:docId" element={<Navigate to="result" replace />} />
+            <Route path="history/:docId/:tab" element={<HistoryDetailPage />} />
+            <Route path="question" element={<QuestionPage />} />
+            <Route path="internal-investigation" element={<InternalInvestigationPage />} />
+            <Route path="education-content" element={<EducationContentPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+          </Route>
 
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </NotificationProvider>  {/* ← 추가 */}
     </BrowserRouter>
   )
 }
