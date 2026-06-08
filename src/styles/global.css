@@ -39,6 +39,8 @@ body {
   background: var(--page-bg);
   color: var(--text-dark);
   line-height: 1.5;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 button { cursor: pointer; font-family: inherit; }

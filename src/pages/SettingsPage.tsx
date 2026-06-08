@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Bell, Database, Globe, HelpCircle, Key, Palette, Shield, User } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'language' | 'appearance' | 'privacy' | 'data' | 'help';
 
@@ -38,7 +39,7 @@ export function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="mb-2 text-2xl font-bold text-gray-900">설정</h2>
-        <p className="text-gray-600">계정 및 시스템 설정을 관리하세요.</p>
+        <p className="text-gray-600">계정과 시스템 설정을 관리하세요.</p>
       </div>
 
       <div className="grid grid-cols-4 gap-6">
@@ -52,7 +53,9 @@ export function SettingsPage() {
                   type="button"
                   onClick={() => handleSelectTab(tab.id)}
                   className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
-                    activeTab === tab.id ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md' : 'text-gray-700 hover:bg-white/80'
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                      : 'text-gray-700 hover:bg-white/80'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -98,7 +101,7 @@ function ProfileSettings() {
 
       <div className="space-y-4">
         {[
-          ['이름', '김준또', 'text'],
+          ['이름', '김준법', 'text'],
           ['이메일', 'juntto@jbgroup.com', 'email'],
           ['부서', '컴플라이언스팀', 'text'],
           ['직책', '선임 컴플라이언스 매니저', 'text'],
@@ -128,6 +131,7 @@ function NotificationSettings() {
     ['일정 알림', '예정된 일정 전에 알림을 받습니다.'],
     ['AI 검토 완료 알림', '문서 검토가 완료되면 알림을 받습니다.'],
   ];
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-bold text-gray-900">알림 설정</h3>
@@ -170,12 +174,28 @@ function SecuritySettings() {
 }
 
 function LanguageSettings() {
+  const { currentLanguage, languages, setLanguage } = useLanguage();
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-no-translate="true">
       <h3 className="text-xl font-bold text-gray-900">언어 및 지역</h3>
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-gray-700">언어</span>
+        <select
+          value={currentLanguage}
+          onChange={(event) => setLanguage(event.target.value as typeof currentLanguage)}
+          className="w-full rounded-lg border border-gray-200/50 bg-white/90 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+        >
+          {languages.map((language) => (
+            <option key={language.code} value={language.code}>
+              {language.label}
+            </option>
+          ))}
+        </select>
+      </label>
+
       {[
-        ['언어', ['한국어', 'English', '日本語']],
-        ['시간대', ['(GMT+9:00) 서울, 도쿄', '(GMT+0:00) 런던', '(GMT-5:00) 뉴욕']],
+        ['시간대', ['(GMT+9:00) 서울, 도쿄', '(GMT+7:00) 하노이, 프놈펜', '(GMT+6:30) 양곤']],
         ['날짜 형식', ['YYYY.MM.DD', 'MM/DD/YYYY', 'DD/MM/YYYY']],
       ].map(([label, options]) => (
         <label key={label as string} className="block">
