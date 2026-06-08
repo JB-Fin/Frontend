@@ -1,22 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, Globe, LogOut, Settings, User } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { authApi } from '../../services/authApi';
 
 type TopBarMenu = 'language' | 'notifications' | 'profile' | null;
 
-const languages = [
-  { code: 'ko', name: '한국어' },
-  { code: 'en', name: 'English' },
-  { code: 'ja', name: '日本語' },
-];
-
 export function TopBar() {
   const navigate = useNavigate();
+  const { currentLanguage, currentLanguageLabel, languages, setLanguage } = useLanguage();
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [openMenu, setOpenMenu] = useState<TopBarMenu>(null);
-  const [currentLang, setCurrentLang] = useState('한국어');
 
   const toggleMenu = (menu: TopBarMenu) => {
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -35,32 +30,34 @@ export function TopBar() {
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative">
+    <div className="flex w-full items-center justify-end gap-3">
+      <div className="relative" data-no-translate="true">
         <button
           type="button"
           onClick={() => toggleMenu('language')}
-          className="flex items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="flex w-36 items-center justify-between gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
         >
           <Globe className="h-4 w-4 text-gray-700" />
-          <span className="text-sm text-gray-700">{currentLang}</span>
+          <span className="text-sm text-gray-700">{currentLanguageLabel}</span>
           <ChevronDown className="h-4 w-4 text-gray-500" />
         </button>
         {openMenu === 'language' && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
-            <div className="absolute right-0 z-20 mt-2 w-40 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
-              {languages.map((lang) => (
+            <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
+              {languages.map((language) => (
                 <button
-                  key={lang.code}
+                  key={language.code}
                   type="button"
                   onClick={() => {
-                    setCurrentLang(lang.name);
+                    setLanguage(language.code);
                     setOpenMenu(null);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-800 transition-colors hover:bg-blue-50/80"
+                  className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-blue-50/80 ${
+                    currentLanguage === language.code ? 'font-semibold text-blue-700' : 'text-gray-800'
+                  }`}
                 >
-                  {lang.name}
+                  {language.label}
                 </button>
               ))}
             </div>
@@ -72,7 +69,7 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('notifications')}
-          className="relative rounded-lg border border-white/60 bg-white/80 p-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-white/60 bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
           aria-label="알림"
         >
           <Bell className="h-5 w-5 text-gray-700" />
@@ -127,13 +124,13 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('profile')}
-          className="flex items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="flex h-12 w-44 items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600">
             <User className="h-4 w-4 text-white" />
           </div>
           <div className="hidden text-left md:block">
-            <p className="text-sm font-medium text-gray-900">김준또</p>
+            <p className="text-sm font-medium text-gray-900">김준법</p>
             <p className="text-xs text-gray-600">컴플라이언스팀</p>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -143,7 +140,7 @@ export function TopBar() {
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
             <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
-                <p className="font-medium text-gray-900">김준또</p>
+                <p className="font-medium text-gray-900">김준법</p>
                 <p className="text-xs text-gray-600">juntto@jbgroup.com</p>
               </div>
               <div className="py-2">

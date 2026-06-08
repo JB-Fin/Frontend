@@ -1,11 +1,11 @@
-﻿import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { pageTitles } from '../../app/pageTitles';
 
-// 1. 페이지 타입 정의 (타입 안전성 확보)
 type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'education-content' | 'task-history' | 'calendar' | 'settings';
 
 const pathToPage: Record<string, PageKey> = {
@@ -28,11 +28,8 @@ const pageToPath: Record<PageKey, string> = {
   settings: '/settings',
 };
 
-// 2. getCurrentPage 함수에 타입 적용
 function getCurrentPage(pathname: string): PageKey {
-  const matched = Object.entries(pathToPage).find(([path]) => 
-    pathname === path || pathname.startsWith(`${path}/`)
-  );
+  const matched = Object.entries(pathToPage).find(([path]) => pathname === path || pathname.startsWith(`${path}/`));
   return matched ? matched[1] : 'home';
 }
 
@@ -40,6 +37,7 @@ export default function PlatformLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPage = getCurrentPage(location.pathname);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleNavigate = (page: PageKey) => {
     navigate(pageToPath[page] || '/home');
@@ -48,24 +46,28 @@ export default function PlatformLayout() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-slate-100">
-        <Sidebar currentPage={currentPage} onNavigate={handleNavigate} />
-        
-        <main className="ml-64">
-          <header className="sticky top-0 z-30 border-b border-white/20 bg-white/75 shadow-sm backdrop-blur-md">
-            <div className="px-8 py-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  {/* 3. 타입 안정성 확보 후 안전하게 접근 */}
-                  <h1 className="mb-1 text-2xl font-bold text-gray-900">
-                    {pageTitles[currentPage] || '플랫폼'}
-                  </h1>
-                  <p className="text-sm text-gray-700">준또배기 컴플라이언스 AI 플랫폼에 오신 것을 환영합니다.</p>
-                </div>
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          onToggle={() => setSidebarCollapsed((current) => !current)}
+        />
+
+        <main className={`transition-[margin] duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
+          <header className="sticky top-0 z-30 h-[104px] border-b border-white/20 bg-white/75 shadow-sm backdrop-blur-md">
+            <div className="grid h-full grid-cols-[minmax(0,1fr)_auto] items-center gap-6 px-8">
+              <div className="min-w-0">
+                <h1 className="truncate text-2xl font-bold text-gray-900">{pageTitles[currentPage] || '플랫폼'}</h1>
+                <p className="mt-1 truncate text-sm text-gray-700">
+                  준또배기 컴플라이언스 AI 플랫폼에 오신 것을 환영합니다.
+                </p>
+              </div>
+              <div className="flex w-[400px] shrink-0 justify-end">
                 <TopBar />
               </div>
             </div>
           </header>
-          
+
           <div className="px-8 py-6">
             <Outlet />
           </div>
