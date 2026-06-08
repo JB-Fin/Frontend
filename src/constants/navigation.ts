@@ -18,7 +18,7 @@ export const navigationItems: NavigationItem[] = [
   { id: 'ai-chat', label: 'AI 채팅', icon: MessageSquare },
   { id: 'ai-review', label: 'AI 검토', icon: FileCheck },
   { id: 'education-content', label: '교육 자료 제작', icon: GraduationCap },
-  { id: 'task-history', label: '작업 내역', icon: History },
+  { id: 'task-history', label: '라이브러리', icon: History },
   { id: 'divider2', type: 'divider' },
   { id: 'calendar', label: '캘린더', icon: Calendar },
 ];
