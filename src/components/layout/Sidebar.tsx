@@ -9,15 +9,15 @@ interface SidebarProps {
 
 export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-40 flex w-64 flex-col border-r border-white/60 bg-white/85 shadow-lg backdrop-blur-xl">
+    <aside className="fixed bottom-0 left-0 top-0 z-40 flex w-64 flex-col border-r border-white/60 bg-white/85 shadow-lg backdrop-blur-xl">
       <div className="border-b border-gray-200/50 px-6 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md">
-            <span className="text-lg font-bold text-white">준</span>
+            <span className="text-sm font-bold text-white">JB</span>
           </div>
           <div>
-            <h1 className="font-bold text-gray-900">준또배기</h1>
-            <p className="text-xs text-gray-600">JB금융그룹</p>
+            <h1 className="font-bold text-gray-900">JB금융그룹</h1>
+            <p className="text-xs text-gray-600">컴플라이언스 AI</p>
           </div>
         </div>
       </div>
@@ -34,6 +34,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
           return (
             <button
               key={item.id}
+              type="button"
               onClick={() => onNavigate(item.id)}
               className={`mb-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
                 isActive
@@ -50,6 +51,7 @@ export function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
       <div className="border-t border-gray-200/50 px-3 py-4">
         <button
+          type="button"
           onClick={() => onNavigate('settings')}
           className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
             currentPage === 'settings'
