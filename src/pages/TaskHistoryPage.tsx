@@ -1,282 +1,216 @@
-import React, { useState } from 'react'
-import { Search, Grid, List } from 'lucide-react'
+import { useMemo, useState } from 'react';
+import { FileText, Grid, Image, List, Search, X } from 'lucide-react';
 
-type FileType = 'review' | 'original' | 'report'
-type ViewMode = 'grid' | 'list'
-type FilterTab = '모두' | '이미지' | '파일'
+type FileType = 'review' | 'original' | 'report';
+type ViewMode = 'grid' | 'list';
+type FilterTab = 'all' | 'images' | 'files';
 
 interface LibraryFile {
-  id: string
-  name: string
-  type: FileType
-  ext: string
-  size: string
-  updatedAt: string
+  id: string;
+  name: string;
+  type: FileType;
+  ext: string;
+  size: string;
+  updatedAt: string;
 }
 
 const initialFiles: LibraryFile[] = [
-  { id: '1', name: '금융소비자보호법_광고심의_결과.pdf', type: 'review', ext: 'PDF', size: '2.4 MB', updatedAt: '어제' },
-  { id: '2', name: 'AML_이상징후_분석_보고서.pdf', type: 'report', ext: 'PDF', size: '1.8 MB', updatedAt: '어제' },
-  { id: '3', name: '투자설명서_원본_v2.docx', type: 'original', ext: 'DOCX', size: '890 KB', updatedAt: '어제' },
-  { id: 'img1', name: '사내교육_현장사진.png', type: 'original', ext: 'PNG', size: '3.2 MB', updatedAt: '오늘' },
-  { id: 'img2', name: '리스크_분석_차트.jpg', type: 'report', ext: 'JPG', size: '1.1 MB', updatedAt: '오늘' },
-]
+  { id: '1', name: '금융소비자보호법_광고심의_결과.pdf', type: 'review', ext: 'PDF', size: '2.4 MB', updatedAt: '오늘 16:20' },
+  { id: '2', name: 'AML_이상징후_분석_보고서.pdf', type: 'report', ext: 'PDF', size: '1.8 MB', updatedAt: '오늘 14:05' },
+  { id: '3', name: '투자설명서_원본_v2.docx', type: 'original', ext: 'DOCX', size: '890 KB', updatedAt: '어제 18:10' },
+  { id: '4', name: '사내교육_현장사진.png', type: 'original', ext: 'PNG', size: '3.2 MB', updatedAt: '어제 11:35' },
+  { id: '5', name: '리스크_분석_차트.jpg', type: 'report', ext: 'JPG', size: '1.1 MB', updatedAt: '06.06 09:12' },
+  { id: '6', name: '내부통제_점검표.txt', type: 'review', ext: 'TXT', size: '120 KB', updatedAt: '06.05 17:42' },
+];
 
-const typeColor = {
-  review: '#16a34a',
-  original: '#2563eb',
-  report: '#f59e0b',
-}
+const tabs: { id: FilterTab; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'images', label: '이미지' },
+  { id: 'files', label: '파일' },
+];
 
-const isImage = (ext: string) =>
-  ['PNG', 'JPG', 'JPEG'].includes(ext?.toUpperCase())
+const typeLabel: Record<FileType, string> = {
+  review: '검토 결과',
+  original: '원본',
+  report: '보고서',
+};
+
+const typeClassName: Record<FileType, string> = {
+  review: 'bg-green-100 text-green-700',
+  original: 'bg-blue-100 text-blue-700',
+  report: 'bg-yellow-100 text-yellow-700',
+};
+
+const isImage = (ext: string) => ['PNG', 'JPG', 'JPEG'].includes(ext.toUpperCase());
 
 function FileIcon({ ext }: { ext: string }) {
+  const image = isImage(ext);
+  const Icon = image ? Image : FileText;
+
   return (
-    <div
-      style={{
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        background: '#f3f4f6',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 700,
-        fontSize: 12,
-        color: '#374151',
-      }}
-    >
-      {ext}
+    <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg ${image ? 'bg-purple-100' : 'bg-blue-100'}`}>
+      <Icon className={`h-5 w-5 ${image ? 'text-purple-600' : 'text-blue-600'}`} />
     </div>
-  )
+  );
 }
 
 export function TaskHistoryPage() {
-  const [files] = useState(initialFiles)
-  const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
-  const [activeTab, setActiveTab] = useState<FilterTab>('모두')
-  const [preview, setPreview] = useState<LibraryFile | null>(null)
+  const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [preview, setPreview] = useState<LibraryFile | null>(null);
 
-  const filtered = files.filter(f => {
-    const matchSearch = f.name.toLowerCase().includes(search.toLowerCase())
-    const matchTab =
-      activeTab === '모두'
-        ? true
-        : activeTab === '이미지'
-        ? isImage(f.ext)
-        : !isImage(f.ext)
-
-    return matchSearch && matchTab
-  })
+  const filteredFiles = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return initialFiles.filter((file) => {
+      const matchesSearch = !keyword || [file.name, file.ext, typeLabel[file.type]].join(' ').toLowerCase().includes(keyword);
+      const matchesTab = activeTab === 'all' || (activeTab === 'images' ? isImage(file.ext) : !isImage(file.ext));
+      return matchesSearch && matchesTab;
+    });
+  }, [activeTab, search]);
 
   return (
-    <div style={{ padding: 28, background: '#f9fafb', minHeight: '100vh' }}>
+    <div className="space-y-6">
+      <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">라이브러리</h2>
+            <p className="mt-1 text-sm text-gray-600">검토 결과, 원본 문서, 보고서를 한곳에서 확인하세요.</p>
+          </div>
 
-      {/* 헤더 */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 18,
-      }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>
-          📁 라이브러리
-        </h2>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => setViewMode('list')}
-            style={{
-              padding: 8,
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: viewMode === 'list' ? '#111827' : '#fff',
-              color: viewMode === 'list' ? '#fff' : '#111827',
-            }}
-          >
-            <List size={16} />
-          </button>
-
-          <button
-            onClick={() => setViewMode('grid')}
-            style={{
-              padding: 8,
-              borderRadius: 8,
-              border: '1px solid #e5e7eb',
-              background: viewMode === 'grid' ? '#111827' : '#fff',
-              color: viewMode === 'grid' ? '#fff' : '#111827',
-            }}
-          >
-            <Grid size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* 검색 */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          background: '#fff',
-          border: '1px solid #e5e7eb',
-          borderRadius: 12,
-          padding: '10px 12px',
-        }}>
-          <Search size={16} color="#9ca3af" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="파일 검색..."
-            style={{
-              border: 'none',
-              outline: 'none',
-              marginLeft: 8,
-              width: '100%',
-              fontSize: 14,
-            }}
-          />
-        </div>
-      </div>
-
-      {/* 탭 */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
-        {(['모두', '이미지', '파일'] as FilterTab[]).map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: '6px 14px',
-              borderRadius: 999,
-              fontSize: 13,
-              border: '1px solid #e5e7eb',
-              background: activeTab === tab ? '#111827' : '#fff',
-              color: activeTab === tab ? '#fff' : '#6b7280',
-              transition: '0.2s',
-              cursor: 'pointer',
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* 리스트 */}
-      {viewMode === 'list' ? (
-        <div style={{ background: '#fff', borderRadius: 14, overflow: 'hidden' }}>
-          {filtered.map(file => (
-            <div
-              key={file.id}
-              onClick={() => setPreview(file)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 14,
-                borderBottom: '1px solid #f3f4f6',
-                cursor: 'pointer',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#f9fafb')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
+          <div className="flex rounded-lg border border-gray-200/60 bg-white/70 p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`rounded-md p-2 transition-colors ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+              aria-label="목록 보기"
             >
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <FileIcon ext={file.ext} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>
-                    {file.name}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#9ca3af' }}>
-                    {file.size} · {file.updatedAt}
-                  </div>
-                </div>
-              </div>
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`rounded-md p-2 transition-colors ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'}`}
+              aria-label="그리드 보기"
+            >
+              <Grid className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
-              <span
-                style={{
-                  fontSize: 11,
-                  padding: '4px 10px',
-                  borderRadius: 999,
-                  background: '#f3f4f6',
-                  color:
-                    typeColor[file.type],
-                  fontWeight: 600,
-                }}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="파일명, 확장자, 유형 검색"
+              className="w-full rounded-lg border border-gray-200/60 bg-white/90 py-2.5 pl-9 pr-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                    : 'border border-gray-200/60 bg-white/80 text-gray-700 hover:bg-white'
+                }`}
               >
-                {file.type}
-              </span>
-            </div>
-          ))}
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      ) : (
-        /* GRID */
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-            gap: 14,
-          }}
-        >
-          {filtered.map(file => (
-            <div
-              key={file.id}
-              onClick={() => setPreview(file)}
-              style={{
-                background: '#fff',
-                border: '1px solid #eee',
-                borderRadius: 14,
-                padding: 14,
-                cursor: 'pointer',
-                transition: '0.2s',
-              }}
-              onMouseEnter={e =>
-                (e.currentTarget.style.transform = 'translateY(-2px)')
-              }
-              onMouseLeave={e =>
-                (e.currentTarget.style.transform = 'translateY(0)')
-              }
-            >
-              <FileIcon ext={file.ext} />
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 600 }}>
-                  {file.name}
+      </section>
+
+      <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+        {filteredFiles.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white/60 px-6 py-12 text-center text-gray-500">
+            검색 결과가 없습니다.
+          </div>
+        ) : viewMode === 'list' ? (
+          <div className="space-y-3">
+            {filteredFiles.map((file) => (
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => setPreview(file)}
+                className="flex w-full items-center justify-between rounded-lg border border-gray-200/60 bg-white/90 p-4 text-left shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-md"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <FileIcon ext={file.ext} />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-gray-900">{file.name}</p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      {file.ext} · {file.size} · {file.updatedAt}
+                    </p>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: '#9ca3af' }}>
-                  {file.size}
+                <span className={`rounded-lg px-2.5 py-1 text-xs font-medium ${typeClassName[file.type]}`}>
+                  {typeLabel[file.type]}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-4">
+            {filteredFiles.map((file) => (
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => setPreview(file)}
+                className="rounded-lg border border-gray-200/60 bg-white/90 p-5 text-left shadow-sm transition-all hover:border-blue-200 hover:bg-blue-50/40 hover:shadow-md"
+              >
+                <div className="mb-4 flex items-center justify-between">
+                  <FileIcon ext={file.ext} />
+                  <span className={`rounded-lg px-2.5 py-1 text-xs font-medium ${typeClassName[file.type]}`}>
+                    {typeLabel[file.type]}
+                  </span>
+                </div>
+                <p className="truncate font-semibold text-gray-900">{file.name}</p>
+                <p className="mt-2 text-xs text-gray-500">
+                  {file.ext} · {file.size}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">{file.updatedAt}</p>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 px-4 backdrop-blur-sm" onClick={() => setPreview(null)}>
+          <div className="w-full max-w-md rounded-lg border border-white/70 bg-white/95 p-6 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <FileIcon ext={preview.ext} />
+                <div className="min-w-0">
+                  <h3 className="truncate font-bold text-gray-900">{preview.name}</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {preview.ext} · {preview.size}
+                  </p>
                 </div>
               </div>
+              <button type="button" onClick={() => setPreview(null)} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" aria-label="닫기">
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* 모달 */}
-      {preview && (
-        <div
-          onClick={() => setPreview(null)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#fff',
-              padding: 24,
-              borderRadius: 16,
-              width: 420,
-            }}
-          >
-            <h3 style={{ fontSize: 16 }}>{preview.name}</h3>
-            <p style={{ color: '#6b7280' }}>{preview.ext}</p>
+            <div className="rounded-lg bg-blue-50/70 p-4 text-sm text-gray-700">
+              <p>
+                <b>유형:</b> {typeLabel[preview.type]}
+              </p>
+              <p className="mt-2">
+                <b>최근 수정:</b> {preview.updatedAt}
+              </p>
+            </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
