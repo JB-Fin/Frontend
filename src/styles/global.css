@@ -1,5 +1,9 @@
 /* 전역 스타일 선언: 폰트나 색상 변수, 기본 여백, 공통 스타일 정의 */
 /* ─── JB금융지주 브랜드 컬러 변수 ─────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --navy:       #1B3A6B;
   --blue:       #1D5A9A;
