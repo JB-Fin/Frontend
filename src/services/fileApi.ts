@@ -1,6 +1,6 @@
 const BASE = import.meta.env.VITE_API_URL
 
-// 프론트 테스트용 임시 파일 목록
+/*
 const MOCK_FILES = [
   {
     id: '1',
@@ -15,32 +15,30 @@ const MOCK_FILES = [
     uploadedAt: '2026-06-08',
   },
 ]
+*/
 
 export const fileApi = {
   // 파일 업로드
   upload: async (file: File) => {
-    /*
-    // 실제 백엔드 연결 코드
     const formData = new FormData()
     formData.append('file', file)
-
-    const res = await fetch(`${BASE}/api/v1/files`, {
+    
+    const res = await fetch(`${BASE}/api/v1/files/upload`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       body: formData,
     })
-
+    
     const data = await res.json()
 
     if (!res.ok) {
       throw new Error(data.detail || '파일 업로드 실패')
     }
-
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -53,11 +51,11 @@ export const fileApi = {
         uploadedAt: new Date().toISOString(),
       },
     }
+    */
   },
 
   // 파일 삭제
   delete: async (fileId: string) => {
-    /*
     // 실제 백엔드 연결 코드
     const res = await fetch(`${BASE}/api/v1/files/${fileId}`, {
       method: 'DELETE',
@@ -73,8 +71,8 @@ export const fileApi = {
     }
 
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 300))
 
@@ -83,12 +81,32 @@ export const fileApi = {
       fileId,
       message: '파일 삭제 완료',
     }
+    */
   },
 
-  // 파일 목록 조회 (라이브러리 페이지용)
+  // 파일 목록 조회
   getList: async () => {
+    // 실제 백엔드 연결 코드
+    const res = await fetch(`${BASE}/api/v1/files`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.detail || '파일 목록 조회 실패')
+    }
+
+    return data
+
+    /*
+    // 프론트 테스트용 Mock 데이터
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     return MOCK_FILES
+    */
   },
 }

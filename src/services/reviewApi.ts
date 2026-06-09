@@ -1,6 +1,6 @@
 const BASE = import.meta.env.VITE_API_URL
 
-// 프론트 테스트용 임시 심의 데이터
+/*
 const MOCK_REVIEWS = [
   {
     id: '1',
@@ -24,12 +24,11 @@ const MOCK_REVIEWS = [
     createdAt: '2026-06-07',
   },
 ]
+*/
 
 export const reviewApi = {
   // 심의 목록 조회
   getList: async () => {
-    /*
-    // 실제 백엔드 연결 코드
     const res = await fetch(`${BASE}/api/v1/reviews`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -43,25 +42,29 @@ export const reviewApi = {
     }
 
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 데이터
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     return MOCK_REVIEWS
+    */
   },
 
   // 심의 요청 등록
   postReview: async (reviewData: any) => {
-    /*
-    // 실제 백엔드 연결 코드
-    const res = await fetch(`${BASE}/api/v1/reviews`, {
+    const res = await fetch(`${BASE}/api/v1/reviews/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
-      body: JSON.stringify(reviewData),
+      body: JSON.stringify({
+        file_id: reviewData.file_id,
+        language: reviewData.language ?? 'ko',
+        regulation_scope:
+          reviewData.regulation_scope ?? 'internal_external',
+      }),
     })
 
     const data = await res.json()
@@ -71,8 +74,8 @@ export const reviewApi = {
     }
 
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -86,5 +89,6 @@ export const reviewApi = {
       },
       message: '심의 요청이 등록되었습니다.',
     }
+    */
   },
 }
