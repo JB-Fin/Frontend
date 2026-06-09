@@ -50,7 +50,31 @@ export const reviewApi = {
     return MOCK_REVIEWS
     */
   },
+  // 문서 AI 분석
+  analyze: async (reviewData: any) => {
+    const res = await fetch(`${BASE}/api/v1/reviews/analyze`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify({
+        file_id: reviewData.file_id,
+        language: reviewData.language ?? 'ko',
+        regulation_scope:
+          reviewData.regulation_scope ?? 'internal_external',
+      }),
+    })
 
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.detail || '문서 분석 실패')
+    }
+
+    return data
+  },
+  
   // 심의 요청 등록
   postReview: async (reviewData: any) => {
     const res = await fetch(`${BASE}/api/v1/reviews/analyze`, {

@@ -1,17 +1,8 @@
 import { fileApi } from '../services/fileApi';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { reviewApi } from '../services/reviewApi';
 import type { ChangeEvent, DragEvent, MouseEvent } from 'react';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Clock,
-  Download,
-  FileText,
-  Search,
-  Upload,
-  X,
-} from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Download, FileText, Search, Upload, X,} from 'lucide-react';
 
 type ReviewStatus = 'completed' | 'in-progress' | 'needs-review';
 
@@ -137,10 +128,26 @@ function highlightSentence(text: string, sentence: string) {
 export function AIReviewPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [works, setWorks] = useState<ReviewWork[]>(initialWorks);
+  const [works, setWorks] = useState<ReviewWork[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [selectedWork, setSelectedWork] = useState<ReviewWork | null>(null);
+
+  useEffect(() => {
+  const fetchReviews = async () => {
+    try {
+      const data = await reviewApi.getList();
+
+      console.log('리뷰 목록 응답', data);
+
+      setWorks(data.items ?? []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchReviews();
+}, []);
 
   const sortedWorks = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();

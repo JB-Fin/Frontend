@@ -1,15 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
-import {
-  ClipboardList,
-  Download,
-  FileText,
-  Image,
-  Megaphone,
-  Presentation,
-  Sparkles,
-  Upload,
-} from 'lucide-react';
+import { ClipboardList, Download, FileText, Image, Megaphone, Presentation, Sparkles, Upload,} from 'lucide-react';
+import { fileApi } from '../services/fileApi';
+import { reviewApi } from '../services/reviewApi'
 
 type LawChange = {
   id: number;
@@ -33,6 +26,7 @@ type PosterDraft = {
 type PageTab = 'create' | 'gallery';
 type OutputMode = 'ppt' | 'copy';
 
+/*
 const defaultChanges: LawChange[] = [
   {
     id: 1,
@@ -59,7 +53,7 @@ const defaultChanges: LawChange[] = [
     audience: '영업점, 고객상담, 민원 담당자',
   },
 ];
-
+*/
 const posterThemes = [
   'from-blue-600 via-indigo-600 to-slate-900 text-white',
   'from-emerald-500 via-teal-600 to-slate-900 text-white',
@@ -68,7 +62,7 @@ const posterThemes = [
 ];
 
 function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
-  const targets = selected.length > 0 ? selected : defaultChanges.slice(0, 2);
+  const targets = selected;
 
   return targets.map((change, index) => ({
     id: change.id,
@@ -86,8 +80,8 @@ function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
 }
 
 function makePptOutline(selected: LawChange[], request: string) {
-  const topics = selected.length > 0 ? selected : defaultChanges.slice(0, 2);
-
+  const topics = selected;
+  /*
   return [
     '1. 교육 목적',
     request || '새 법안의 주요 변경사항과 현장 적용 기준을 빠르게 공유합니다.',
@@ -103,11 +97,19 @@ function makePptOutline(selected: LawChange[], request: string) {
     '- 담당 부서별 질의 취합',
     '- 교육 이수 여부와 관련 문서 최신화 확인',
   ].join('\n');
+  */
+ if (topics.length === 0) {
+  return '선택된 교육 항목이 없습니다.';
+}
 }
 
 function makeEducationCopy(selected: LawChange[]) {
-  const topics = selected.length > 0 ? selected : defaultChanges.slice(0, 2);
-  const primary = topics[0];
+  const topics = selected;
+  if (topics.length === 0) {
+    return '선택된 교육 항목이 없습니다.';
+  }
+
+const primary = topics[0];
 
   return [
     `이번 교육은 "${primary.title}" 내용을 중심으로 진행하면 좋겠습니다.`,
@@ -158,14 +160,51 @@ function PosterCard({ poster, compact = false }: { poster: PosterDraft; compact?
 
 export function EducationContentPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [activeTab, setActiveTab] = useState<PageTab>('create');
   const [dragActive, setDragActive] = useState(false);
-  const [lawFileName, setLawFileName] = useState('금융소비자보호법_개정안_요약.pdf');
-  const [changes, setChanges] = useState<LawChange[]>(defaultChanges);
-  const [selectedIds, setSelectedIds] = useState<number[]>([1, 2]);
+  const [lawFileName, setLawFileName] = useState('선택된 파일 없음');
+  const [changes, setChanges] = useState<LawChange[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [requestText, setRequestText] = useState('이번 개정안에서 영업점 직원에게 꼭 교육하면 좋을 내용을 정리해 주세요.');
-  const [outputMode, setOutputMode] = useState<OutputMode>('ppt');
 
+  const [outputMode, setOutputMode] = useState<OutputMode>('ppt');
+  const [uploadedFileId, setUploadedFileId] = useState<number | null>(null);
+  const handleGenerateEducation = async () => {
+  if (!uploadedFileId) {
+    alert('먼저 파일을 업로드해 주세요.');
+    return;
+  }
+
+  try {
+    setIsGenerating(true);
+
+    const result = await reviewApi.analyze({
+      file_id: uploadedFileId,
+      language: 'ko',
+      regulation_scope: 'internal_external',
+    });
+
+    const mappedChanges: LawChange[] = result.highlights.map((item: any, index: number) => ({
+      id: item.issue_id ?? index + 1,
+      title: item.issue_summary || '검토 포인트',
+      before: item.original_text || '원문 정보 없음',
+      after: item.suggested_text || item.revision_detail || '수정 제안 없음',
+      reason: item.reason || '검토 사유 없음',
+      audience: '영업점, 상품 담당자, 준법자문가',
+    }));
+
+    setChanges(mappedChanges);
+    setSelectedIds(mappedChanges.map((change) => change.id));
+  } catch (error) {
+    console.error('교육자료 생성 실패:', error);
+    alert('교육자료 생성에 실패했습니다.');
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+  const [isGenerating, setIsGenerating] = useState(false);
   const selectedChanges = useMemo(
     () => changes.filter((change) => selectedIds.includes(change.id)),
     [changes, selectedIds],
@@ -174,11 +213,40 @@ export function EducationContentPage() {
   const pptOutline = useMemo(() => makePptOutline(selectedChanges, requestText), [requestText, selectedChanges]);
   const educationCopy = useMemo(() => makeEducationCopy(selectedChanges), [selectedChanges]);
 
-  const addLawFile = (files: FileList | File[]) => {
+  const addLawFile = async (files: FileList | File[]) => {
     const file = Array.from(files)[0];
     if (!file) return;
 
-    setLawFileName(file.name);
+    setLawFileName(file.name)
+
+     try {
+    const uploadResult = await fileApi.upload(file)
+
+    console.log('파일 업로드 결과:', uploadResult)
+
+    const fileId =
+    uploadResult.file_id ??
+    uploadResult.id ??
+    uploadResult.fileId ??
+    uploadResult.data?.file_id ??
+    uploadResult.data?.id ??
+    uploadResult.file?.file_id ??
+    uploadResult.file?.id
+    
+    console.log('추출된 fileId:', fileId)
+    
+    if (!fileId) {
+      alert('파일 업로드는 됐지만 file_id를 받지 못했습니다.')
+      return
+    }
+
+    setUploadedFileId(fileId)
+    setActiveTab('create')
+  } catch (error) {
+    console.error('파일 업로드 실패:', error)
+    alert('파일 업로드에 실패했습니다.')
+  }
+    /*
     const newChange: LawChange = {
       id: Date.now(),
       title: '신규 법안 안내 의무 추가',
@@ -190,6 +258,7 @@ export function EducationContentPage() {
     setChanges((current) => [newChange, ...current]);
     setSelectedIds((current) => [newChange.id, ...current]);
     setActiveTab('create');
+    */
   };
 
   const handleDrag = (event: DragEvent<HTMLDivElement>) => {
@@ -375,6 +444,15 @@ export function EducationContentPage() {
                     onChange={(event) => setRequestText(event.target.value)}
                     className="min-h-24 w-full rounded-lg border border-gray-200/70 bg-white/90 p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                   />
+                  <button
+                  type="button"
+                  onClick={handleGenerateEducation}
+                  disabled={isGenerating}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:shadow-lg disabled:opacity-60"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {isGenerating ? 'AI가 교육자료 생성 중...' : '요청하기'}
+                    </button>
                 </label>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <button
