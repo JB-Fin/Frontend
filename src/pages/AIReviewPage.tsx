@@ -1,4 +1,6 @@
+import { fileApi } from '../services/fileApi';
 import { useMemo, useRef, useState } from 'react';
+import { reviewApi } from '../services/reviewApi';
 import type { ChangeEvent, DragEvent, MouseEvent } from 'react';
 import {
   AlertCircle,
@@ -153,34 +155,77 @@ export function AIReviewPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [searchTerm, works]);
 
-  const addFiles = (files: FileList | File[]) => {
-    const selectedFiles = Array.from(files);
-    if (selectedFiles.length === 0) return;
+  const addFiles = async (files: FileList | File[]) => {
+  const selectedFiles = Array.from(files);
+  if (selectedFiles.length === 0) return;
 
-    const validFiles = selectedFiles.filter(isSupportedFile);
-    if (validFiles.length === 0) {
-      setUploadError('PDF, DOCX, TXT 파일만 업로드할 수 있습니다.');
-      return;
-    }
+  const validFiles = selectedFiles.filter(isSupportedFile);
+  if (validFiles.length === 0) {
+    setUploadError('PDF, DOCX, TXT 파일만 업로드할 수 있습니다.');
+    return;
+  }
 
-    setUploadError('');
-    const now = Date.now();
-    const newWorks = validFiles.map((file, index) => ({
-      id: now + index,
-      title: file.name.replace(/\.[^/.]+$/, ''),
-      requester: '김준또',
-      status: 'in-progress' as const,
-      issues: 0,
-      createdAt: new Date(now + index).toISOString(),
-      fileName: file.name,
-      originalDocument: `${file.name} 원본 문서 내용 미리보기입니다. 업로드된 문서의 본문이 이 영역에 표시됩니다.`,
-      revisedDocument: 'AI 검토가 완료되면 수정본 문서가 이 영역에 표시됩니다.',
-      riskSentence: '검토가 진행 중입니다.',
-      suggestion: 'AI 검토가 완료되면 수정 제안이 표시됩니다.',
-    }));
+  setUploadError('');
 
-    setWorks((current) => [...newWorks, ...current]);
-  };
+  /*
+  // 프론트 Mock 업로드 처리
+  const now = Date.now();
+  const newWorks = validFiles.map((file, index) => ({
+    id: now + index,
+    title: file.name.replace(/\.[^/.]+$/, ''),
+
+    requester: '김준또',
+    status: 'in-progress' as const,
+    issues: 0,
+    createdAt: new Date(now + index).toISOString(),
+    fileName: file.name,
+    originalDocument: `${file.name} 원본 문서 내용 미리보기입니다. 업로드된 문서의 본문이 이 영역에 표시됩니다.`,
+    revisedDocument: 'AI 검토가 완료되면 수정본 문서가 이 영역에 표시됩니다.',
+    riskSentence: '검토가 진행 중입니다.',
+    suggestion: 'AI 검토가 완료되면 수정 제안이 표시됩니다.',
+  }));
+
+  setWorks((current) => [...newWorks, ...current]);
+  */
+
+  // 실제 백엔드 업로드 연동
+  try {
+    const uploadedWorks = await Promise.all(
+      validFiles.map(async (file, index) => {
+        const response = await fileApi.upload(file);
+        const uploadedFile = response.file ?? response.data ?? response;
+
+        const reviewResponse = await reviewApi.postReview({
+          file_id: uploadedFile.file_id ?? uploadedFile.id,
+          language: 'ko',
+          regulation_scope: 'internal_external',
+        });
+
+        console.log('심의 실행 응답', reviewResponse);
+        console.log('파일 업로드 응답', response);
+
+        return {
+          id: Number(uploadedFile.id ?? Date.now() + index),
+          title: file.name.replace(/\.[^/.]+$/, ''),
+          requester: '김준또',
+          status: 'in-progress' as const,
+          issues: 0,
+          createdAt: uploadedFile.uploadedAt ?? new Date().toISOString(),
+          fileName: uploadedFile.fileName ?? file.name,
+          originalDocument: `${file.name} 업로드가 완료되었습니다.`,
+          revisedDocument: 'AI 검토가 완료되면 수정본 문서가 이 영역에 표시됩니다.',
+          riskSentence: '검토가 진행 중입니다.',
+          suggestion: 'AI 검토가 완료되면 수정 제안이 표시됩니다.',
+        };
+      })
+    );
+
+    setWorks((current) => [...uploadedWorks, ...current]);
+  } catch (error) {
+    console.error('파일 업로드 실패', error);
+    setUploadError('파일 업로드 중 오류가 발생했습니다.');
+  }
+};
 
   const handleDrag = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();

@@ -1,6 +1,6 @@
 const BASE = import.meta.env.VITE_API_URL
 
-// 프론트 테스트용 임시 언어 설정
+/*
 const MOCK_LANGUAGE_SETTING = {
   lang: 'ko',
   availableLanguages: [
@@ -11,14 +11,14 @@ const MOCK_LANGUAGE_SETTING = {
     { code: 'my', name: 'မြန်မာဘာသာ' },
   ],
 }
+*/
 
 export const languageApi = {
   // 언어 설정 조회
   getSettings: async () => {
-    /*
     // 실제 백엔드 연결 코드
     const res = await fetch(
-      `${BASE}/api/v1/settings/language`,
+      `${BASE}/api/v1/languages`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -33,20 +33,20 @@ export const languageApi = {
     }
 
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 데이터
     await new Promise((resolve) => setTimeout(resolve, 300))
 
     return MOCK_LANGUAGE_SETTING
+    */
   },
 
   // 언어 설정 변경
   updateSettings: async (langCode: string) => {
-    /*
     // 실제 백엔드 연결 코드
     const res = await fetch(
-      `${BASE}/api/v1/settings/language`,
+      `${BASE}/api/v1/languages/settings/language`,
       {
         method: 'PUT',
         headers: {
@@ -54,7 +54,7 @@ export const languageApi = {
           Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
-          lang: langCode,
+          language: langCode,
         }),
       }
     )
@@ -66,8 +66,8 @@ export const languageApi = {
     }
 
     return data
-    */
 
+    /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 300))
 
@@ -76,5 +76,6 @@ export const languageApi = {
       lang: langCode,
       message: '언어 설정이 변경되었습니다.',
     }
+    */
   },
 }

@@ -28,7 +28,7 @@ const MOCK_ALARMS = [
 export const alarmApi = {
   // 알림 목록 조회
   getList: async () => {
-    /*
+    
     // 실제 백엔드 연결 코드
     const res = await fetch(`${BASE}/api/v1/alarms`, {
       headers: {
@@ -43,7 +43,7 @@ export const alarmApi = {
     }
 
     return data
-    */
+    
 
     // 프론트 테스트용 Mock 데이터
     await new Promise((resolve) => setTimeout(resolve, 300))
@@ -53,7 +53,7 @@ export const alarmApi = {
 
   // 알림 읽음 처리
   markAsRead: async (id: string) => {
-    /*
+    
     // 실제 백엔드 연결 코드
     const res = await fetch(`${BASE}/api/v1/alarms/${id}/read`, {
       method: 'POST',
@@ -69,8 +69,8 @@ export const alarmApi = {
     }
 
     return data
-    */
-
+    
+    /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 200))
 
@@ -79,5 +79,6 @@ export const alarmApi = {
       alarmId: id,
       message: '읽음 처리 완료',
     }
+    */
   },
 }

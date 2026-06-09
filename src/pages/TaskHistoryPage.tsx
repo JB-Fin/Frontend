@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { fileApi } from '../services/fileApi';
 import { FileText, Grid, Image, List, Search, X } from 'lucide-react';
 
 type FileType = 'review' | 'original' | 'report';
@@ -13,7 +14,7 @@ interface LibraryFile {
   size: string;
   updatedAt: string;
 }
-
+/*
 const initialFiles: LibraryFile[] = [
   { id: '1', name: '금융소비자보호법_광고심의_결과.pdf', type: 'review', ext: 'PDF', size: '2.4 MB', updatedAt: '오늘 16:20' },
   { id: '2', name: 'AML_이상징후_분석_보고서.pdf', type: 'report', ext: 'PDF', size: '1.8 MB', updatedAt: '오늘 14:05' },
@@ -22,7 +23,7 @@ const initialFiles: LibraryFile[] = [
   { id: '5', name: '리스크_분석_차트.jpg', type: 'report', ext: 'JPG', size: '1.1 MB', updatedAt: '06.06 09:12' },
   { id: '6', name: '내부통제_점검표.txt', type: 'review', ext: 'TXT', size: '120 KB', updatedAt: '06.05 17:42' },
 ];
-
+*/
 const tabs: { id: FilterTab; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: 'images', label: '이미지' },
@@ -55,14 +56,58 @@ function FileIcon({ ext }: { ext: string }) {
 }
 
 export function TaskHistoryPage() {
+  const [files, setFiles] = useState<LibraryFile[]>([]);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
   const [preview, setPreview] = useState<LibraryFile | null>(null);
 
+useEffect(() => {
+  const fetchFiles = async () => {
+    try {
+      const response = await fileApi.getList();
+
+      const files = Array.isArray(response.data)
+      ? response.data
+      : []
+
+
+      const mappedFiles = files.map((file: any, index: number) => {
+        const fileName = file.fileName ?? file.name ?? '이름 없는 파일';
+        const ext = fileName.split('.').pop()?.toUpperCase() ?? 'FILE';
+
+        return {
+          id: String(
+            file.id ??
+            file.fileId ??
+            file.file_name ??
+            file.fileName ??
+            index
+          ),
+          name: fileName,
+          type: file.type ?? 'original',
+          ext,
+          size: file.size ?? '-',
+          updatedAt:
+          file.uploadedAt ??
+          file.uploaded_at ??
+          file.updatedAt ??
+          '-',
+        };
+      });
+
+      setFiles(mappedFiles);
+    } catch (error) {
+      console.error('파일 목록 조회 실패', error);
+    }
+  };
+
+  fetchFiles();
+}, []);
+
   const filteredFiles = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    return initialFiles.filter((file) => {
+    return files.filter((file) => {
       const matchesSearch = !keyword || [file.name, file.ext, typeLabel[file.type]].join(' ').toLowerCase().includes(keyword);
       const matchesTab = activeTab === 'all' || (activeTab === 'images' ? isImage(file.ext) : !isImage(file.ext));
       return matchesSearch && matchesTab;

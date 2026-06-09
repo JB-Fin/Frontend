@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Bell, Database, Globe, HelpCircle, Key, Palette, Shield, User } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { languageApi } from '../services/languageApi';
+
 
 type SettingsTab = 'profile' | 'notifications' | 'security' | 'language' | 'appearance' | 'privacy' | 'data' | 'help';
 
@@ -176,6 +178,18 @@ function SecuritySettings() {
 function LanguageSettings() {
   const { currentLanguage, languages, setLanguage } = useLanguage();
 
+  const handleLanguageChange = async (lang: string) => {
+    try {
+      await languageApi.updateSettings(lang);
+
+      console.log('언어 변경 성공');
+
+      setLanguage(lang as typeof currentLanguage);
+    } catch (error) {
+      console.error('언어 변경 실패', error);
+    }
+  };
+
   return (
     <div className="space-y-6" data-no-translate="true">
       <h3 className="text-xl font-bold text-gray-900">언어 및 지역</h3>
@@ -183,7 +197,7 @@ function LanguageSettings() {
         <span className="mb-2 block text-sm font-medium text-gray-700">언어</span>
         <select
           value={currentLanguage}
-          onChange={(event) => setLanguage(event.target.value as typeof currentLanguage)}
+          onChange={(event) => handleLanguageChange(event.target.value)}
           className="w-full rounded-lg border border-gray-200/50 bg-white/90 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
         >
           {languages.map((language) => (

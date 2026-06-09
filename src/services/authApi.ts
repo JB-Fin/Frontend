@@ -1,7 +1,7 @@
 // 인증 API: 로그인, 로그아웃, 사용자 인증 확인 요청 처리 API 함수 정의
  
 const BASE = import.meta.env.VITE_API_URL
- 
+ /*
 // 프론트 테스트용 임시 로그인 계정
 const MOCK_USERS = [
   {
@@ -17,11 +17,11 @@ const MOCK_USERS = [
     role: 'USER',
   },
 ]
- 
+ */
 export const authApi = {
   login: async (userId, password) => {
     // 실제 백엔드 로그인 API 연결 코드
-    /*
+ 
     const res = await fetch(
       `${BASE}/api/v1/auth/login`,
       {
@@ -49,8 +49,8 @@ export const authApi = {
     localStorage.setItem('user', JSON.stringify(data.user))
  
     return data
-    */
-    
+ 
+    /*
     // 프론트 내부 임시 로그인 로직
     await new Promise((resolve) => setTimeout(resolve, 300))
  
@@ -81,35 +81,35 @@ export const authApi = {
     localStorage.setItem('user', JSON.stringify(loginUser))
  
     return data
-    
+    */
   },
  
   logout: async () => {
-    // 실제 백엔드 로그아웃 API 연결 코드
-    /*
-    const res = await fetch(
-      `${BASE}/api/v1/auth/logout`,
-      {
-        method: 'POST',
-      }
-    )
- 
-    localStorage.removeItem('token')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('user')
- 
-    return await res.json()
-    */
-    
-    // 프론트 내부 임시 로그아웃 로직
-    localStorage.removeItem('token')
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('user')
- 
-    return {
-      success: true,
-      message: '로그아웃 완료',
+  // 실제 백엔드 로그아웃 API 연결 코드
+
+  const res = await fetch(
+    `${BASE}/api/v1/auth/logout`,
+    {
+      method: 'POST',
     }
-    
-  },
+  )
+
+  localStorage.removeItem('token')
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('user')
+
+  return await res.json()
+
+  /*
+  // 프론트 내부 임시 로그아웃 로직
+  localStorage.removeItem('token')
+  localStorage.removeItem('accessToken')
+  localStorage.removeItem('user')
+
+  return {
+    success: true,
+    message: '로그아웃 완료',
+  }
+  */
+},
 }
