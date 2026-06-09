@@ -106,13 +106,31 @@ useEffect(() => {
 }, []);
 
   const filteredFiles = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-    return files.filter((file) => {
-      const matchesSearch = !keyword || [file.name, file.ext, typeLabel[file.type]].join(' ').toLowerCase().includes(keyword);
-      const matchesTab = activeTab === 'all' || (activeTab === 'images' ? isImage(file.ext) : !isImage(file.ext));
-      return matchesSearch && matchesTab;
-    });
-  }, [activeTab, search]);
+  const keyword = search.trim().toLowerCase()
+
+  return files.filter((file) => {
+    if (
+      !file.name ||
+      file.name.trim() === '' ||
+      file.name === '이름 없는 파일'
+    ) {
+      return false
+    }
+
+    const matchesSearch =
+      !keyword ||
+      [file.name, file.ext, typeLabel[file.type]]
+        .join(' ')
+        .toLowerCase()
+        .includes(keyword)
+
+    const matchesTab =
+      activeTab === 'all' ||
+      (activeTab === 'images' ? isImage(file.ext) : !isImage(file.ext))
+
+    return matchesSearch && matchesTab
+  })
+}, [files, activeTab, search])
 
   return (
     <div className="space-y-6">
