@@ -11,8 +11,8 @@ export function TaskHistoryWidget() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="space-y-2 flex-1">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
         {tasks.map(task => {
           const Icon = task.icon
           return (

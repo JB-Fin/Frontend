@@ -9,7 +9,7 @@ export function CalendarWidget() {
   const recent = upcomingEvents.slice(0, 3)
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="mb-4 flex items-center gap-3">
         <div className="rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100 p-3">
           <Calendar className="h-6 w-6 text-indigo-600" />
@@ -22,7 +22,7 @@ export function CalendarWidget() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-hidden">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-2">
         {recent.length === 0 ? (
           <p className="py-4 text-center text-xs text-gray-400">예정된 일정이 없습니다.</p>
         ) : (

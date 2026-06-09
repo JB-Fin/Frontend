@@ -67,11 +67,27 @@ export function AIChatPage() {
   const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
 
   const storeMessages = useChatStore((s) => s.messages);
+  const addMessage = useChatStore((s) => s.addMessage);
+  const setStoreMessages = useChatStore((s) => s.setMessages);
 
-  const messages =
-    storeMessages.length > 1
-      ? storeMessages
-      : activeSession?.messages ?? [];
+  const messages = storeMessages.length > 0 ? storeMessages : activeSession?.messages ?? [];
+
+  useEffect(() => {
+    if (storeMessages.length === 0) return;
+
+    setSessions((current) =>
+      current.map((session) =>
+        session.id === activeSessionId
+          ? {
+              ...session,
+              messages: storeMessages,
+              title: deriveTitle(storeMessages),
+              updatedAt: storeMessages[storeMessages.length - 1]?.timestamp ?? session.updatedAt,
+            }
+          : session,
+      ),
+    );
+  }, [activeSessionId, storeMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -96,6 +112,8 @@ export function AIChatPage() {
       timestamp,
     };
 
+    addMessage(userMessage);
+
     updateSession(sessionId, (session) => {
       const nextMessages = [...session.messages, userMessage];
       return {
@@ -115,6 +133,8 @@ export function AIChatPage() {
         timestamp: replyTime,
       };
 
+      addMessage(aiMessage);
+
       updateSession(sessionId, (session) => ({
         messages: [...session.messages, aiMessage],
         updatedAt: replyTime,
@@ -127,11 +147,21 @@ export function AIChatPage() {
     nextSessionId.current += 1;
     setSessions((current) => [newSession, ...current]);
     setActiveSessionId(newSession.id);
+    setStoreMessages(newSession.messages);
     setInput('');
   };
 
   const handleTogglePin = (sessionId: number) => {
     updateSession(sessionId, (session) => ({ pinned: !session.pinned }));
+  };
+
+  const handleSelectSession = (sessionId: number) => {
+    const selectedSession = sessions.find((session) => session.id === sessionId);
+
+    if (!selectedSession) return;
+
+    setActiveSessionId(sessionId);
+    setStoreMessages(selectedSession.messages);
   };
 
   const filteredSessions = useMemo(() => {
@@ -241,7 +271,7 @@ export function AIChatPage() {
             emptyText={historySearch ? '검색된 고정 채팅이 없습니다.' : '핀 고정한 채팅이 없습니다.'}
             sessions={pinnedSessions}
             activeSessionId={activeSessionId}
-            onSelect={setActiveSessionId}
+            onSelect={handleSelectSession}
             onTogglePin={handleTogglePin}
           />
 
@@ -252,7 +282,7 @@ export function AIChatPage() {
             emptyText={historySearch ? '검색된 채팅이 없습니다.' : '아직 과거 채팅이 없습니다.'}
             sessions={recentSessions}
             activeSessionId={activeSessionId}
-            onSelect={setActiveSessionId}
+            onSelect={handleSelectSession}
             onTogglePin={handleTogglePin}
           />
         </div>
