@@ -1,12 +1,15 @@
-import { FileText, GraduationCap, Megaphone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'
+import { FileText, GraduationCap, Megaphone } from 'lucide-react'
 
 const drafts = [
-  { title: '원금 보장 오인 표현 금지', status: '포스터 초안' },
-  { title: '고위험 고객 기록 보존 강화', status: 'PPT 개요' },
-  { title: '민원 보고 기한 명확화', status: '교육 문구' },
-];
+  { title: '원금 보장 오인 표현 금지',   status: '포스터 초안' },
+  { title: '고위험 고객 기록 보존 강화', status: 'PPT 개요'   },
+  { title: '민원 보고 기한 명확화',      status: '교육 문구'  },
+]
 
 export function EducationContentWidget() {
+  const navigate = useNavigate()
+
   return (
     <div className="flex h-full flex-col">
       <div className="mb-4 flex items-center gap-3">
@@ -20,10 +23,17 @@ export function EducationContentWidget() {
       </div>
 
       <div className="flex-1 space-y-2">
-        {drafts.map((draft) => (
-          <div key={draft.title} className="rounded-lg border border-gray-200/50 bg-white/90 p-3 transition-all hover:shadow-md">
+        {drafts.map(draft => (
+          <div
+            key={draft.title}
+            onClick={() => navigate('/education-content')}
+            className="cursor-pointer rounded-lg border border-gray-200/50 bg-white/90 p-3 transition-all hover:shadow-md"
+          >
             <div className="mb-2 flex items-center gap-2">
-              {draft.status === '포스터 초안' ? <Megaphone className="h-4 w-4 text-blue-600" /> : <FileText className="h-4 w-4 text-gray-600" />}
+              {draft.status === '포스터 초안'
+                ? <Megaphone className="h-4 w-4 text-blue-600" />
+                : <FileText className="h-4 w-4 text-gray-600" />
+              }
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{draft.title}</span>
             </div>
             <span className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-700">{draft.status}</span>
@@ -31,10 +41,13 @@ export function EducationContentWidget() {
         ))}
       </div>
 
-      <button className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-medium text-green-600 transition-colors hover:text-green-700">
+      <button
+        onClick={() => navigate('/education-content')}
+        className="mt-3 flex w-full items-center justify-center gap-2 py-2 text-sm font-medium text-green-600 transition-colors hover:text-green-700"
+      >
         <GraduationCap className="h-4 w-4" />
         교육 자료 제작 열기
       </button>
     </div>
-  );
+  )
 }

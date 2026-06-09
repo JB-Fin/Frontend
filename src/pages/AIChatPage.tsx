@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MessageSquare, Pin, Plus, Search, Send, User } from 'lucide-react';
+import { useChatStore } from '../store/chatStore'
 
 type ChatMessage = {
   id: number;
@@ -64,7 +65,13 @@ export function AIChatPage() {
   const [historySearch, setHistorySearch] = useState('');
 
   const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
-  const messages = activeSession?.messages ?? [];
+
+  const storeMessages = useChatStore((s) => s.messages);
+
+  const messages =
+    storeMessages.length > 1
+      ? storeMessages
+      : activeSession?.messages ?? [];
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
