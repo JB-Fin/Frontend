@@ -11,7 +11,7 @@ export function EducationContentWidget() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="mb-4 flex items-center gap-3">
         <div className="rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 p-3">
           <GraduationCap className="h-6 w-6 text-green-600" />
@@ -22,7 +22,7 @@ export function EducationContentWidget() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
         {drafts.map(draft => (
           <div
             key={draft.title}

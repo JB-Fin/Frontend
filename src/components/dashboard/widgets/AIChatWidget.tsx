@@ -52,8 +52,8 @@ export function AIChatWidget() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="mb-4 flex-1 space-y-4 overflow-y-auto">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-2">
         {messages.map((message) => (
           <div
             key={message.id}

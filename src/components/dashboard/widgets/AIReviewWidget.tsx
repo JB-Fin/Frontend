@@ -5,7 +5,7 @@ export function AIReviewWidget() {
   const navigate = useNavigate()
 
   return (
-    <div className="flex h-full flex-col items-center justify-center">
+    <div className="flex h-full min-h-0 flex-col items-center justify-center overflow-y-auto pr-2">
       <div className="text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100">
           <Upload className="h-8 w-8 text-blue-600" />

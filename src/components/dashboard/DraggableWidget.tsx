@@ -139,7 +139,7 @@ export function DraggableWidget({
           </div>
         </div>
 
-        <div className="overflow-auto p-4" style={{ height: 'calc(100% - 53px)' }}>
+        <div className="min-h-0 overflow-auto p-4" style={{ height: 'calc(100% - 53px)' }}>
           {children}
         </div>
       </div>

@@ -10,6 +10,7 @@ export type ChatMessage = {
 interface ChatState {
   messages: ChatMessage[]
   addMessage: (msg: ChatMessage) => void
+  setMessages: (messages: ChatMessage[]) => void
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -29,4 +30,6 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       messages: [...state.messages, msg],
     })),
+
+  setMessages: (messages) => set({ messages }),
 }))
