@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bot, MessageSquare, Pin, Plus, Search, Send, User } from 'lucide-react'
 import { chatApi } from '../services/chatApi'
+import { useChatStore } from '../store/chatStore';
 
 type ChatMessage = {
   id: number
@@ -84,8 +85,8 @@ export function AIChatPage() {
   const [input, setInput] = useState('')
   const [historySearch, setHistorySearch] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
 
-<<<<<<< HEAD
   const storeMessages = useChatStore((s) => s.messages);
   const addMessage = useChatStore((s) => s.addMessage);
   const setStoreMessages = useChatStore((s) => s.setMessages);
@@ -108,12 +109,25 @@ export function AIChatPage() {
       ),
     );
   }, [activeSessionId, storeMessages]);
-=======
-  const activeSession =
-    sessions.find((session) => session.id === activeSessionId) ?? sessions[0]
 
-  const messages = activeSession?.messages ?? []
->>>>>>> 22ae551 ([feat] 로그인·알림·채팅·파일·언어 API 연동)
+useEffect(() => {
+  if (storeMessages.length === 0) return;
+
+  setSessions((current) =>
+    current.map((session) =>
+      session.id === activeSessionId
+        ? {
+            ...session,
+            messages: storeMessages,
+            title: deriveTitle(storeMessages),
+            updatedAt:
+              storeMessages[storeMessages.length - 1]?.timestamp ??
+              session.updatedAt,
+          }
+        : session
+    )
+  );
+}, [activeSessionId, storeMessages, setSessions]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -225,7 +239,7 @@ export function AIChatPage() {
   }
 
   const handleNewSession = () => {
-<<<<<<< HEAD
+
     const newSession = createSession(nextSessionId.current);
     nextSessionId.current += 1;
     setSessions((current) => [newSession, ...current]);
@@ -233,15 +247,6 @@ export function AIChatPage() {
     setStoreMessages(newSession.messages);
     setInput('');
   };
-=======
-    const newSession = createSession(nextSessionId.current)
-
-    nextSessionId.current += 1
-    setSessions((current) => [newSession, ...current])
-    setActiveSessionId(newSession.id)
-    setInput('')
-  }
->>>>>>> 22ae551 ([feat] 로그인·알림·채팅·파일·언어 API 연동)
 
   const handleTogglePin = (sessionId: number) => {
     updateSession(sessionId, (session) => ({ pinned: !session.pinned }))
