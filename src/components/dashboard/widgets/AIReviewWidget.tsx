@@ -1,6 +1,9 @@
-import { AlertCircle, CheckCircle, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom'
+import { AlertCircle, CheckCircle, Upload } from 'lucide-react'
 
 export function AIReviewWidget() {
+  const navigate = useNavigate()
+
   return (
     <div className="flex h-full flex-col items-center justify-center">
       <div className="text-center">
@@ -9,9 +12,15 @@ export function AIReviewWidget() {
         </div>
         <h3 className="mb-2 font-medium text-gray-900">문서 AI 검토</h3>
         <p className="mb-4 text-sm text-gray-600">규정 준수 검토를 위한 문서 업로드</p>
-        <button className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 font-medium text-white transition-all hover:shadow-lg">
+
+        {/* 파일 선택 → AI 검토 페이지로 이동 */}
+        <button
+          onClick={() => navigate('/review')}
+          className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 font-medium text-white transition-all hover:shadow-lg"
+        >
           파일 선택
         </button>
+
         <div className="mt-6 border-t border-gray-200/50 pt-6">
           <div className="flex items-center justify-center gap-6 text-xs text-gray-600">
             <div className="flex items-center gap-1">
@@ -24,7 +33,15 @@ export function AIReviewWidget() {
             </div>
           </div>
         </div>
+
+        {/* 전체 검토 내역 보기 */}
+        <button
+          onClick={() => navigate('/review')}
+          className="mt-4 w-full py-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+        >
+          전체 검토 내역 →
+        </button>
       </div>
     </div>
-  );
+  )
 }

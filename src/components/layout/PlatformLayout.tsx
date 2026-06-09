@@ -6,13 +6,13 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { pageTitles } from '../../app/pageTitles';
 
-type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'education-content' | 'task-history' | 'calendar' | 'settings';
+type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'education-content' | 'library' | 'calendar' | 'settings';
 
 const pathToPage: Record<string, PageKey> = {
   '/home': 'home',
   '/question': 'ai-chat',
   '/review': 'ai-review',
-  '/history': 'task-history',
+  '/library': 'library',
   '/education-content': 'education-content',
   '/calendar': 'calendar',
   '/settings': 'settings',
@@ -22,7 +22,7 @@ const pageToPath: Record<PageKey, string> = {
   home: '/home',
   'ai-chat': '/question',
   'ai-review': '/review',
-  'task-history': '/history',
+  'library': '/library',
   'education-content': '/education-content',
   calendar: '/calendar',
   settings: '/settings',

@@ -21,7 +21,7 @@ const MOCK_USERS = [
 export const authApi = {
   login: async (userId, password) => {
     // 실제 백엔드 로그인 API 연결 코드
- 
+    /*
     const res = await fetch(
       `${BASE}/api/v1/auth/login`,
       {
@@ -49,8 +49,8 @@ export const authApi = {
     localStorage.setItem('user', JSON.stringify(data.user))
  
     return data
- 
-    /*
+    */
+    
     // 프론트 내부 임시 로그인 로직
     await new Promise((resolve) => setTimeout(resolve, 300))
  
@@ -81,12 +81,12 @@ export const authApi = {
     localStorage.setItem('user', JSON.stringify(loginUser))
  
     return data
-    */
+    
   },
  
   logout: async () => {
     // 실제 백엔드 로그아웃 API 연결 코드
- 
+    /*
     const res = await fetch(
       `${BASE}/api/v1/auth/logout`,
       {
@@ -99,8 +99,8 @@ export const authApi = {
     localStorage.removeItem('user')
  
     return await res.json()
- 
-    /*
+    */
+    
     // 프론트 내부 임시 로그아웃 로직
     localStorage.removeItem('token')
     localStorage.removeItem('accessToken')
@@ -110,6 +110,6 @@ export const authApi = {
       success: true,
       message: '로그아웃 완료',
     }
-    */
+    
   },
 }

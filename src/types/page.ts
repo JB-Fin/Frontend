@@ -3,6 +3,6 @@ export type PageId =
   | 'ai-chat'
   | 'ai-review'
   | 'education-content'
-  | 'task-history'
+  | 'library'
   | 'calendar'
   | 'settings';

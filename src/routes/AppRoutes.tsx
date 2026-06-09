@@ -36,9 +36,7 @@ export default function AppRoutes() {
                 <Route path="home" element={<DashboardPage />} />
                 <Route path="review" element={<AIReviewPage />} />
                 <Route path="review/:docId" element={<AIReviewPage />} />
-                <Route path="history" element={<TaskHistoryPage />} />
-                <Route path="history/:docId" element={<TaskHistoryPage />} />
-                <Route path="history/:docId/:tab" element={<TaskHistoryPage />} />
+                <Route path="library" element={<TaskHistoryPage />} />
                 <Route path="question" element={<AIChatPage />} />
                 <Route path="education-content" element={<EducationContentPage />} />
                 <Route path="calendar" element={<CalendarPage />} />
