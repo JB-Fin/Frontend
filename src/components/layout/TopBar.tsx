@@ -7,11 +7,29 @@ import { authApi } from '../../services/authApi';
 
 type TopBarMenu = 'language' | 'notifications' | 'profile' | null;
 
+const topBarVietnameseText: Record<string, string> = {
+  '알림': 'Thông báo',
+  '모두 보기': 'Xem tất cả',
+  '김준법': 'Kim Junbeop',
+  '컴플라이언스팀': 'Đội tuân thủ',
+  '프로필': 'Hồ sơ',
+  '계정 설정': 'Cài đặt tài khoản',
+  '로그아웃': 'Đăng xuất',
+  '새로운 규정 업데이트': 'Cập nhật quy định mới',
+  'AI 검토 완료': 'Đánh giá AI hoàn tất',
+  '승인 요청': 'Yêu cầu phê duyệt',
+  '5분 전': '5 phút trước',
+  '1시간 전': '1 giờ trước',
+  '2시간 전': '2 giờ trước',
+};
+
 export function TopBar() {
   const navigate = useNavigate();
   const { currentLanguage, currentLanguageLabel, languages, setLanguage } = useLanguage();
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const [openMenu, setOpenMenu] = useState<TopBarMenu>(null);
+  const isVietnamese = currentLanguage === 'vi';
+  const t = (text: string) => (isVietnamese ? topBarVietnameseText[text] ?? text : text);
 
   const toggleMenu = (menu: TopBarMenu) => {
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -30,7 +48,7 @@ export function TopBar() {
   };
 
   return (
-    <div className="flex w-full items-center justify-end gap-3">
+    <div className="flex w-full items-center justify-end gap-3" data-no-translate="true">
       <div className="relative" data-no-translate="true">
         <button
           type="button"
@@ -70,7 +88,7 @@ export function TopBar() {
           type="button"
           onClick={() => toggleMenu('notifications')}
           className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-white/60 bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
-          aria-label="알림"
+          aria-label={t('알림')}
         >
           <Bell className="h-5 w-5 text-gray-700" />
           {unreadCount > 0 && (
@@ -84,7 +102,9 @@ export function TopBar() {
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
             <div className="absolute right-0 z-20 mt-2 w-80 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
-                <h3 className="font-medium text-gray-900">알림 ({unreadCount})</h3>
+                <h3 className="font-medium text-gray-900">
+                  {t('알림')} ({unreadCount})
+                </h3>
               </div>
               <div className="max-h-96 overflow-y-auto">
                 {notifications.map((notification) => (
@@ -98,8 +118,8 @@ export function TopBar() {
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm text-gray-900">{notification.title}</p>
-                        <p className="mt-1 text-xs text-gray-600">{notification.time}</p>
+                        <p className="text-sm text-gray-900">{t(notification.title)}</p>
+                        <p className="mt-1 text-xs text-gray-600">{t(notification.time)}</p>
                       </div>
                       {!notification.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600" />}
                     </div>
@@ -112,7 +132,7 @@ export function TopBar() {
                   onClick={() => goTo('/notifications')}
                   className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  모두 보기
+                  {t('모두 보기')}
                 </button>
               </div>
             </div>
@@ -130,8 +150,8 @@ export function TopBar() {
             <User className="h-4 w-4 text-white" />
           </div>
           <div className="hidden text-left md:block">
-            <p className="text-sm font-medium text-gray-900">김준법</p>
-            <p className="text-xs text-gray-600">컴플라이언스팀</p>
+            <p className="text-sm font-medium text-gray-900">{t('김준법')}</p>
+            <p className="text-xs text-gray-600">{t('컴플라이언스팀')}</p>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-500" />
         </button>
@@ -140,7 +160,7 @@ export function TopBar() {
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
             <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
-                <p className="font-medium text-gray-900">김준법</p>
+                <p className="font-medium text-gray-900">{t('김준법')}</p>
                 <p className="text-xs text-gray-600">juntto@jbgroup.com</p>
               </div>
               <div className="py-2">
@@ -150,7 +170,7 @@ export function TopBar() {
                   className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50/80"
                 >
                   <User className="h-4 w-4" />
-                  프로필
+                  {t('프로필')}
                 </button>
                 <button
                   type="button"
@@ -158,7 +178,7 @@ export function TopBar() {
                   className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50/80"
                 >
                   <Settings className="h-4 w-4" />
-                  계정 설정
+                  {t('계정 설정')}
                 </button>
               </div>
               <div className="border-t border-gray-200/50 py-2">
@@ -168,7 +188,7 @@ export function TopBar() {
                   className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50/80"
                 >
                   <LogOut className="h-4 w-4" />
-                  로그아웃
+                  {t('로그아웃')}
                 </button>
               </div>
             </div>
