@@ -27,7 +27,7 @@ const initialWorks: ReviewWork[] = [
     id: 1,
     title: '신규 대출상품 설명서 검토',
     requester: '김준또',
-    status: 'completed',
+    status: 'in-progress',
     issues: 2,
     createdAt: '2026-06-08T15:20:00',
     fileName: '신규_대출상품_설명서.pdf',
@@ -133,112 +133,222 @@ function highlightSentence(text: string, sentence: string) {
 
 export function AIReviewPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [dragActive, setDragActive] = useState(false);
   const [works, setWorks] = useState<ReviewWork[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [selectedWork, setSelectedWork] = useState<ReviewWork | null>(null);
-
+  const [uploadedFile, setUploadedFile] = useState<{
+    fileId: number;
+    fileName: string;
+  } | null>(null);
+  /*
   useEffect(() => {
-  const fetchReviews = async () => {
-    try {
-      const data = await reviewApi.getList();
+    const fetchReviews = async () => {
+      try {
+        const data = await reviewApi.getList();
 
-      console.log('리뷰 목록 응답', data);
+        console.log('리뷰 목록 응답', data);
 
-      setWorks(data.items ?? []);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        const items = Array.isArray(data)
+          ? data
+          : data.items ?? data.reviews ?? data.data ?? [];
 
-  fetchReviews();
+        const mappedWorks: ReviewWork[] = items.map((item: any, index: number) => {
+          const highlights = item.highlights ?? item.data?.highlights ?? [];
+
+          return {
+            id: Number(item.id ?? item.review_id ?? index + 1),
+            title:
+              item.title ??
+              item.file_name ??
+              item.filename ??
+              item.original_filename ??
+              '제목 없음',
+            requester: item.requester ?? item.user_name ?? '김준또',
+            status:
+              item.status === 'completed' || item.status === '완료'
+                ? 'completed'
+                : item.status === 'needs-review' || item.status === '확인 필요'
+                  ? 'needs-review'
+                  : 'in-progress',
+            issues: Number(
+              item.issues ??
+                item.issue_count ??
+                highlights.length ??
+                0
+            ),
+            createdAt:
+              item.createdAt ??
+              item.created_at ??
+              item.uploadedAt ??
+              item.uploaded_at ??
+              new Date().toISOString(),
+            fileName:
+              item.fileName ??
+              item.file_name ??
+              item.filename ??
+              item.original_filename ??
+              '파일명 없음',
+            originalDocument:
+              item.originalDocument ??
+              item.original_text ??
+              item.content ??
+              highlights[0]?.original_text ??
+              '원본 문서 내용이 없습니다.',
+            revisedDocument:
+              item.revisedDocument ??
+              item.revised_text ??
+              item.suggested_text ??
+              highlights[0]?.suggested_text ??
+              highlights[0]?.revision_detail ??
+              '수정본 문서 내용이 없습니다.',
+            riskSentence:
+              item.riskSentence ??
+              item.risk_sentence ??
+              highlights[0]?.original_text ??
+              '위험 문장이 없습니다.',
+            suggestion:
+              item.suggestion ??
+              item.reason ??
+              highlights[0]?.reason ??
+              highlights[0]?.suggested_text ??
+              highlights[0]?.revision_detail ??
+              '수정 제안이 없습니다.',
+          };
+        });
+
+        setWorks(mappedWorks);
+      } catch (error) {
+        console.error('리뷰 목록 조회 실패', error);
+        setWorks([]);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+  */
+ useEffect(() => {
+  setWorks([]);
 }, []);
 
   const sortedWorks = useMemo(() => {
     const keyword = searchTerm.trim().toLowerCase();
+
     return works
       .filter((work) => {
         if (!keyword) return true;
-        return [work.title, work.requester, work.fileName, statusConfig[work.status].label]
+
+        return [
+          work.title ?? '',
+          work.requester ?? '',
+          work.fileName ?? '',
+          statusConfig[work.status]?.label ?? '검토 중',
+        ]
           .join(' ')
           .toLowerCase()
           .includes(keyword);
       })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => {
+        const aTime = new Date(a.createdAt).getTime();
+        const bTime = new Date(b.createdAt).getTime();
+
+        return (
+          (Number.isNaN(bTime) ? 0 : bTime) -
+          (Number.isNaN(aTime) ? 0 : aTime)
+        );
+      });
   }, [searchTerm, works]);
 
   const addFiles = async (files: FileList | File[]) => {
-  const selectedFiles = Array.from(files);
-  if (selectedFiles.length === 0) return;
+    const selectedFiles = Array.from(files);
+    if (selectedFiles.length === 0) return;
 
-  const validFiles = selectedFiles.filter(isSupportedFile);
-  if (validFiles.length === 0) {
-    setUploadError('PDF, DOCX, TXT 파일만 업로드할 수 있습니다.');
-    return;
-  }
+    const file = selectedFiles[0];
 
-  setUploadError('');
+    if (!isSupportedFile(file)) {
+      setUploadError('PDF, DOCX, TXT 파일만 업로드할 수 있습니다.');
+      return;
+    }
 
-  /*
-  // 프론트 Mock 업로드 처리
-  const now = Date.now();
-  const newWorks = validFiles.map((file, index) => ({
-    id: now + index,
-    title: file.name.replace(/\.[^/.]+$/, ''),
+    setUploadError('');
 
-    requester: '김준또',
-    status: 'in-progress' as const,
-    issues: 0,
-    createdAt: new Date(now + index).toISOString(),
-    fileName: file.name,
-    originalDocument: `${file.name} 원본 문서 내용 미리보기입니다. 업로드된 문서의 본문이 이 영역에 표시됩니다.`,
-    revisedDocument: 'AI 검토가 완료되면 수정본 문서가 이 영역에 표시됩니다.',
-    riskSentence: '검토가 진행 중입니다.',
-    suggestion: 'AI 검토가 완료되면 수정 제안이 표시됩니다.',
-  }));
+    try {
+      const response = await fileApi.upload(file);
+      const uploadedFileData = response.file ?? response.data ?? response;
 
-  setWorks((current) => [...newWorks, ...current]);
-  */
+      const fileId =
+        uploadedFileData.file_id ??
+        uploadedFileData.id ??
+        uploadedFileData.fileId;
 
-  // 실제 백엔드 업로드 연동
-  try {
-    const uploadedWorks = await Promise.all(
-      validFiles.map(async (file, index) => {
-        const response = await fileApi.upload(file);
-        const uploadedFile = response.file ?? response.data ?? response;
+      if (!fileId) {
+        setUploadError('파일 업로드는 완료됐지만 file_id를 받지 못했습니다.');
+        return;
+      }
 
-        const reviewResponse = await reviewApi.postReview({
-          file_id: uploadedFile.file_id ?? uploadedFile.id,
-          language: 'ko',
-          regulation_scope: 'internal_external',
-        });
+      setUploadedFile({
+        fileId: Number(fileId),
+        fileName: file.name,
+      });
 
-        console.log('심의 실행 응답', reviewResponse);
-        console.log('파일 업로드 응답', response);
+      console.log('파일 업로드 완료', uploadedFileData);
+    } catch (error) {
+      console.error('파일 업로드 실패', error);
+      setUploadError('파일 업로드 중 오류가 발생했습니다.');
+    }
+  };
 
-        return {
-          id: Number(uploadedFile.id ?? Date.now() + index),
-          title: file.name.replace(/\.[^/.]+$/, ''),
-          requester: '김준또',
-          status: 'in-progress' as const,
-          issues: 0,
-          createdAt: uploadedFile.uploadedAt ?? new Date().toISOString(),
-          fileName: uploadedFile.fileName ?? file.name,
-          originalDocument: `${file.name} 업로드가 완료되었습니다.`,
-          revisedDocument: 'AI 검토가 완료되면 수정본 문서가 이 영역에 표시됩니다.',
-          riskSentence: '검토가 진행 중입니다.',
-          suggestion: 'AI 검토가 완료되면 수정 제안이 표시됩니다.',
-        };
-      })
-    );
+  const handleRequestReview = async () => {
+    if (!uploadedFile) {
+      setUploadError('먼저 파일을 업로드해 주세요.');
+      return;
+    }
 
-    setWorks((current) => [...uploadedWorks, ...current]);
-  } catch (error) {
-    console.error('파일 업로드 실패', error);
-    setUploadError('파일 업로드 중 오류가 발생했습니다.');
-  }
-};
+    setUploadError('');
+
+    try {
+      const reviewResponse = await reviewApi.postReview({
+        file_id: uploadedFile.fileId,
+        language: 'ko',
+        regulation_scope: 'internal_external',
+      });
+
+      console.log('검토 요청 응답', reviewResponse);
+
+      const highlights =
+        reviewResponse.highlights ??
+        reviewResponse.data?.highlights ??
+        [];
+
+      const newWork: ReviewWork = {
+        id: Number(
+          reviewResponse.id ??
+          reviewResponse.review_id ??
+          reviewResponse.data?.id ??
+          reviewResponse.data?.review_id ??
+          Date.now()
+        ),
+        title: uploadedFile.fileName.replace(/\.[^/.]+$/, ''),
+        requester: '김준또',
+        status: 'in-progress',
+        issues: 0,
+        createdAt: new Date().toISOString(),
+        fileName: uploadedFile.fileName,
+        originalDocument: `${uploadedFile.fileName} 검토 요청이 접수되었습니다.`,
+        revisedDocument: 'AI 검토가 완료되면 수정본이 표시됩니다.',
+        riskSentence: '검토가 진행 중입니다.',
+        suggestion: '검토 완료 후 수정 제안이 표시됩니다.',
+      };
+
+      setWorks((current) => [newWork, ...current]);
+      setUploadedFile(null);
+    } catch (error) {
+      console.error('검토 요청 실패', error);
+      setUploadError('검토 요청 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleDrag = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -276,23 +386,53 @@ export function AIReviewPage() {
           onDragOver={handleDrag}
           onDrop={handleDrop}
           className={`rounded-lg border-2 border-dashed p-12 text-center transition-all ${
-            dragActive ? 'border-blue-500 bg-blue-50/70' : 'border-gray-300 bg-white/50 hover:border-blue-400 hover:bg-blue-50/30'
+            dragActive
+              ? 'border-blue-500 bg-blue-50/70'
+              : 'border-gray-300 bg-white/50 hover:border-blue-400 hover:bg-blue-50/30'
           }`}
         >
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100">
             <Upload className="h-10 w-10 text-blue-600" />
           </div>
+
           <h3 className="mb-2 text-xl font-bold text-gray-900">문서 AI 검토</h3>
-          <p className="mb-6 text-gray-600">검토할 문서를 끌어다 놓거나 파일을 선택해 업로드하세요.</p>
-          <button
+          <p className="mb-6 text-gray-600">
+            검토할 문서를 끌어다 놓거나 파일을 선택해 업로드하세요.
+          </p>
+
+          <div className="flex flex-col items-center">
+            <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 font-medium text-white transition-all hover:shadow-lg"
-          >
-            파일 선택
-          </button>
+            >
+              파일 선택
+              </button>
+              {uploadedFile && (
+                <div className="mt-6 w-full max-w-md rounded-xl border border-green-200 bg-green-50 p-4 text-left shadow-sm">
+                  <p className="text-sm font-semibold text-green-800">
+                    업로드 완료
+                    </p>
+                    <p className="mt-1 truncate text-sm text-green-700">
+                      📄 {uploadedFile.fileName}
+                      </p>
+                      <button
+                      type="button"
+                      onClick={handleRequestReview}
+                      className="mt-4 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg"
+                      >
+                        검토 요청
+                        </button>
+                        </div>
+                      )}
+                      </div>
+
           <p className="mt-4 text-sm text-gray-500">지원 형식: PDF, DOCX, TXT</p>
-          {uploadError && <p className="mt-3 text-sm font-medium text-red-600">{uploadError}</p>}
+          {uploadError && (
+            <p className="mt-3 text-sm font-medium text-red-600">
+              {uploadError}
+            </p>
+          )}
         </div>
       </section>
 
@@ -300,8 +440,11 @@ export function AIReviewPage() {
         <div className="mb-5 flex items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold text-gray-900">최근 검토</h3>
-            <p className="mt-1 text-sm text-gray-600">카드를 클릭하면 작업 상세를 확인할 수 있습니다.</p>
+            <p className="mt-1 text-sm text-gray-600">
+              카드를 클릭하면 작업 상세를 확인할 수 있습니다.
+            </p>
           </div>
+
           <div className="relative w-80">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -320,19 +463,28 @@ export function AIReviewPage() {
         ) : (
           <div className="grid grid-cols-2 gap-4">
             {sortedWorks.map((work) => (
-              <ReviewWorkCard key={work.id} work={work} onSelect={setSelectedWork} />
+              <ReviewWorkCard
+                key={work.id}
+                work={work}
+                onSelect={setSelectedWork}
+              />
             ))}
           </div>
         )}
       </section>
 
-      {selectedWork && <ReviewDetailModal work={selectedWork} onClose={() => setSelectedWork(null)} />}
+      {selectedWork && (
+        <ReviewDetailModal
+          work={selectedWork}
+          onClose={() => setSelectedWork(null)}
+        />
+      )}
     </div>
   );
 }
 
 function ReviewWorkCard({ work, onSelect }: { work: ReviewWork; onSelect: (work: ReviewWork) => void }) {
-  const status = statusConfig[work.status];
+  const status = statusConfig[work.status] ?? statusConfig['in-progress'];
   const StatusIcon = status.icon;
 
   const downloadOriginal = (event: MouseEvent) => {
