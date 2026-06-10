@@ -98,7 +98,22 @@ export const reviewApi = {
     }
 
     return data
-
+  },
+   // 심의 결과 상세 조회
+   getReview: async (reviewId: number) => {
+    const res = await fetch(`${BASE}/api/v1/reviews/${reviewId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+    const data = await res.json()
+    
+    if (!res.ok) {
+      throw new Error(data.detail || '검토 결과 조회 실패')
+    }
+    
+    return data
+ 
     /*
     // 프론트 테스트용 Mock 처리
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -114,5 +129,5 @@ export const reviewApi = {
       message: '심의 요청이 등록되었습니다.',
     }
     */
-  },
-}
+   },
+  }
