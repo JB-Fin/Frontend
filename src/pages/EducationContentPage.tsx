@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
 import { ClipboardList, Download, FileText, Image, Megaphone, Presentation, Sparkles, Upload,} from 'lucide-react';
-import { fileApi } from '../services/fileApi';
-import { reviewApi } from '../services/reviewApi'
+// 유사시 대비 import { fileApi } from '../services/fileApi';
+// 유사시 대비 import { reviewApi } from '../services/reviewApi'
 
 type LawChange = {
   id: number;
@@ -26,7 +26,7 @@ type PosterDraft = {
 type PageTab = 'create' | 'gallery';
 type OutputMode = 'ppt' | 'copy';
 
-/*
+
 const defaultChanges: LawChange[] = [
   {
     id: 1,
@@ -53,13 +53,13 @@ const defaultChanges: LawChange[] = [
     audience: '영업점, 고객상담, 민원 담당자',
   },
 ];
-*/
+
 const posterThemes = [
   'from-blue-600 via-indigo-600 to-slate-900 text-white',
   'from-emerald-500 via-teal-600 to-slate-900 text-white',
   'from-amber-300 via-orange-500 to-rose-600 text-white',
   'from-sky-100 via-white to-indigo-100 text-gray-950',
-];
+]
 
 function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
   const targets = selected;
@@ -81,26 +81,30 @@ function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
 
 function makePptOutline(selected: LawChange[], request: string) {
   const topics = selected;
-  /*
+
+  if (topics.length === 0) {
+    return '선택된 교육 항목이 없습니다.';
+  }
+
   return [
     '1. 교육 목적',
     request || '새 법안의 주요 변경사항과 현장 적용 기준을 빠르게 공유합니다.',
     '',
     '2. 핵심 변경사항',
-    ...topics.map((topic, index) => `${index + 1}) ${topic.title} - ${topic.reason}`),
+    ...topics.map(
+      (topic, index) => `${index + 1}) ${topic.title} - ${topic.reason}`
+    ),
     '',
     '3. 현장 적용 체크포인트',
-    ...topics.map((topic) => `- ${topic.audience}: ${topic.after}`),
+    ...topics.map(
+      (topic) => `- ${topic.audience}: ${topic.after}`
+    ),
     '',
     '4. 교육 진행 제안',
     '- 포스터로 핵심 문구 우선 공지',
     '- 담당 부서별 질의 취합',
     '- 교육 이수 여부와 관련 문서 최신화 확인',
   ].join('\n');
-  */
- if (topics.length === 0) {
-  return '선택된 교육 항목이 없습니다.';
-}
 }
 
 function makeEducationCopy(selected: LawChange[]) {
@@ -169,7 +173,8 @@ export function EducationContentPage() {
   const [requestText, setRequestText] = useState('이번 개정안에서 영업점 직원에게 꼭 교육하면 좋을 내용을 정리해 주세요.');
 
   const [outputMode, setOutputMode] = useState<OutputMode>('ppt');
-  const [uploadedFileId, setUploadedFileId] = useState<number | null>(null);
+  // const [uploadedFileId, setUploadedFileId] = useState<number | null>(null);
+  /*
   const handleGenerateEducation = async () => {
   if (!uploadedFileId) {
     alert('먼저 파일을 업로드해 주세요.');
@@ -203,6 +208,60 @@ export function EducationContentPage() {
     setIsGenerating(false);
   }
 };
+*/
+const handleGenerateEducation = async () => {
+  if (lawFileName === '선택된 파일 없음') {
+    alert('먼저 파일을 업로드해 주세요.');
+    return;
+  }
+
+  try {
+    setIsGenerating(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const mockChanges: LawChange[] = [
+      {
+        id: 1,
+        title: '원금 보장 오인 표현 금지',
+        before: '안정적인 수익과 원금 보호를 기대할 수 있습니다.',
+        after:
+          '시장 상황에 따라 원금 손실이 발생할 수 있으며 수익률은 보장되지 않습니다.',
+        reason:
+          '상품 안내에서 원금 보장으로 오인될 수 있는 표현을 명확히 제한하기 위한 항목입니다.',
+        audience: '상품기획, 영업점, 마케팅 담당자',
+      },
+      {
+        id: 2,
+        title: '고위험 고객 기록 보존 강화',
+        before: '필요 시 모니터링 결과를 내부 시스템에 기록합니다.',
+        after:
+          '고위험 고객 모니터링 결과는 필수 항목으로 기록하고 5년간 보존해야 합니다.',
+        reason:
+          'AML 점검 시 사후 증빙 가능성을 높이기 위한 기록 관리 기준입니다.',
+        audience: '준법감시, AML, 고객확인 담당자',
+      },
+      {
+        id: 3,
+        title: '민원 보고 기한 명확화',
+        before: '민원 발생 시 관련 부서에 신속히 공유합니다.',
+        after:
+          '불완전판매 관련 민원은 접수 후 1영업일 이내 준법감시부서에 보고해야 합니다.',
+        reason:
+          '초기 대응 지연으로 인한 소비자 피해 확대를 방지하기 위한 절차입니다.',
+        audience: '영업점, 고객상담, 민원 담당자',
+      },
+    ];
+
+    setChanges(mockChanges);
+    setSelectedIds(mockChanges.map((change) => change.id));
+  } catch (error) {
+    console.error('교육자료 생성 실패:', error);
+    alert('교육자료 생성에 실패했습니다.');
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   const [isGenerating, setIsGenerating] = useState(false);
   const selectedChanges = useMemo(
@@ -213,6 +272,7 @@ export function EducationContentPage() {
   const pptOutline = useMemo(() => makePptOutline(selectedChanges, requestText), [requestText, selectedChanges]);
   const educationCopy = useMemo(() => makeEducationCopy(selectedChanges), [selectedChanges]);
 
+  /*
   const addLawFile = async (files: FileList | File[]) => {
     const file = Array.from(files)[0];
     if (!file) return;
@@ -246,7 +306,9 @@ export function EducationContentPage() {
     console.error('파일 업로드 실패:', error)
     alert('파일 업로드에 실패했습니다.')
   }
-    /*
+  
+
+    
     const newChange: LawChange = {
       id: Date.now(),
       title: '신규 법안 안내 의무 추가',
@@ -258,8 +320,17 @@ export function EducationContentPage() {
     setChanges((current) => [newChange, ...current]);
     setSelectedIds((current) => [newChange.id, ...current]);
     setActiveTab('create');
-    */
+    
   };
+  */
+
+  const addLawFile = (files: FileList | File[]) => {
+  const file = Array.from(files)[0];
+  if (!file) return;
+
+  setLawFileName(file.name);
+  setActiveTab('create');
+};
 
   const handleDrag = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();

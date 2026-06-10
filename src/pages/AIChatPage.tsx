@@ -93,22 +93,6 @@ export function AIChatPage() {
 
   const messages = storeMessages.length > 0 ? storeMessages : activeSession?.messages ?? [];
 
-  useEffect(() => {
-    if (storeMessages.length === 0) return;
-
-    setSessions((current) =>
-      current.map((session) =>
-        session.id === activeSessionId
-          ? {
-              ...session,
-              messages: storeMessages,
-              title: deriveTitle(storeMessages),
-              updatedAt: storeMessages[storeMessages.length - 1]?.timestamp ?? session.updatedAt,
-            }
-          : session,
-      ),
-    );
-  }, [activeSessionId, storeMessages]);
 
 useEffect(() => {
   if (storeMessages.length === 0) return;
@@ -212,6 +196,7 @@ useEffect(() => {
         text: getAiResponseText(response),
         timestamp: replyTime,
       }
+      addMessage(aiMessage);
 
       updateSession(sessionId, (session) => ({
         messages: [...session.messages, aiMessage],
@@ -228,6 +213,8 @@ useEffect(() => {
         text: '메시지 전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
         timestamp: errorTime,
       }
+
+      addMessage(errorMessage);
 
       updateSession(sessionId, (session) => ({
         messages: [...session.messages, errorMessage],
