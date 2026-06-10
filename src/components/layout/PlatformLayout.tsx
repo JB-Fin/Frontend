@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -38,6 +38,10 @@ export default function PlatformLayout() {
   const navigate = useNavigate();
   const currentPage = getCurrentPage(location.pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
 
   const handleNavigate = (page: PageKey) => {
     navigate(pageToPath[page] || '/home');

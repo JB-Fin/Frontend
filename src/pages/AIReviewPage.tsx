@@ -2,7 +2,7 @@ import { fileApi } from '../services/fileApi';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { reviewApi } from '../services/reviewApi';
 import type { ChangeEvent, DragEvent, MouseEvent } from 'react';
-import { AlertCircle, CheckCircle2, Clock, Download, FileText, Search, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Download, FileText, Loader2, Search, Upload, X } from 'lucide-react';
 
 type ReviewStatus = 'completed' | 'in-progress' | 'needs-review';
 
@@ -112,7 +112,7 @@ async function downloadReport(work: ReviewWork) {
     `[위험 문장]`,
     work.riskSentence,
     ``,
-    `[수정 제안]`,
+    `[수정 제안 근거]`,
     work.suggestion,
     ``,
     `─────────────────────────────────────`,
@@ -147,6 +147,7 @@ export function AIReviewPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [selectedWork, setSelectedWork] = useState<ReviewWork | null>(null);
+  const [isReviewing, setIsReviewing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{
     fileId: number;
     fileName: string;
@@ -207,12 +208,15 @@ export function AIReviewPage() {
   };
 
   const handleRequestReview = async () => {
+    if (isReviewing) return;
+
     if (!uploadedFile) {
       setUploadError('먼저 파일을 업로드해 주세요.');
       return;
     }
 
     setUploadError('');
+    setIsReviewing(true);
 
     try {
       // 1. 검토 요청
@@ -316,6 +320,8 @@ export function AIReviewPage() {
     } catch (error) {
       console.error('검토 요청 실패', error);
       setUploadError('검토 요청 중 오류가 발생했습니다.');
+    } finally {
+      setIsReviewing(false);
     }
   };
 
@@ -385,9 +391,17 @@ export function AIReviewPage() {
                 <button
                   type="button"
                   onClick={handleRequestReview}
-                  className="mt-4 w-full rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg"
+                  disabled={isReviewing}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  검토 요청
+                  {isReviewing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      검토가 진행 중입니다...
+                    </>
+                  ) : (
+                    '검토 요청'
+                  )}
                 </button>
               </div>
             )}
@@ -591,7 +605,7 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
               </p>
             </div>
             <div className="rounded-lg bg-white/80 p-4">
-              <p className="mb-2 text-sm font-semibold text-gray-900">수정 제안</p>
+              <p className="mb-2 text-sm font-semibold text-gray-900">수정 제안 근거</p>
               <p className="text-sm leading-7 text-gray-700">{work.suggestion}</p>
             </div>
           </div>
