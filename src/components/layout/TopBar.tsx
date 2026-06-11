@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, Globe, LogOut, Settings, User } from 'lucide-react';
-import { useLanguage } from '../../context/LanguageContext';
+import { useLanguage, type AppLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { authApi } from '../../services/authApi';
+import { languageApi } from '../../services/languageApi';
 
 type TopBarMenu = 'language' | 'notifications' | 'profile' | null;
 
@@ -47,6 +48,17 @@ export function TopBar() {
     navigate('/login', { replace: true });
   };
 
+  const handleLanguageChange = async (langCode: AppLanguage) => {
+  try {
+    setLanguage(langCode);
+    setOpenMenu(null);
+
+    await languageApi.updateSettings(langCode);
+  } catch (error) {
+    console.error('언어 설정 변경 실패:', error);
+  }
+};
+
   return (
     <div className="flex w-full items-center justify-end gap-3" data-no-translate="true">
       <div className="relative" data-no-translate="true">
@@ -65,18 +77,15 @@ export function TopBar() {
             <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               {languages.map((language) => (
                 <button
-                  key={language.code}
-                  type="button"
-                  onClick={() => {
-                    setLanguage(language.code);
-                    setOpenMenu(null);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-blue-50/80 ${
-                    currentLanguage === language.code ? 'font-semibold text-blue-700' : 'text-gray-800'
+                key={language.code}
+                type="button"
+                onClick={() => handleLanguageChange(language.code)}
+                className={`w-full px-4 py-2 text-left text-sm transition-colors hover:bg-blue-50/80 ${
+                  currentLanguage === language.code ? 'font-semibold text-blue-700' : 'text-gray-800'
                   }`}
-                >
-                  {language.label}
-                </button>
+                  >
+                    {language.label}
+                    </button>
               ))}
             </div>
           </>

@@ -67,13 +67,30 @@ function deriveTitle(messages: ChatMessage[]) {
 
 function getAiResponseText(response: any) {
   return (
+    response?.answer ??
+    response?.data?.answer ??
+    response?.result?.answer ??
     response?.message?.content ??
     response?.data?.message?.content ??
     response?.content ??
-    response?.answer ??
     response?.reply ??
     '응답을 받았습니다.'
   )
+}
+
+function formatMessageForDisplay(message: ChatMessage) {
+  if (message.type !== 'ai') return message.text
+
+  return message.text
+    .replace(/\r\n?/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/([^\n])\s+(\d+\)\s*)/g, '$1\n\n$2')
+    .replace(
+      /\s+(설명해야 할 사항은|또한|다만|따라서|예를 들어|결론적으로|요약하면)\s+/g,
+      '\n\n$1 '
+    )
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
 }
 
 export function AIChatPage() {
@@ -323,16 +340,17 @@ useEffect(() => {
                 </div>
 
                 <div
-                  className={`inline-block max-w-2xl rounded-lg px-5 py-3 ${
+                  className={`inline-block max-w-2xl rounded-lg px-5 py-3 text-left ${
                     message.type === 'ai'
                       ? 'border border-gray-200/50 bg-white/90 text-gray-800'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {message.text}
+                  <p className="whitespace-pre-wrap break-words text-sm leading-7">
+                    {formatMessageForDisplay(message)}
                   </p>
                 </div>
+
               </div>
             </div>
           ))}
