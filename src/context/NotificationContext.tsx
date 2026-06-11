@@ -1,5 +1,4 @@
-import React, {createContext, useContext, useState, ReactNode, useEffect,} from 'react';
-
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { alarmApi } from '../services/alarmApi';
 
 export interface NotificationItem {
@@ -7,7 +6,8 @@ export interface NotificationItem {
   title: string;
   time: string;
   isRead: boolean;
-  type: 'update' | 'review' | 'approval';
+  type: 'update' | 'review' | 'approval' | 'education' | 'library';
+  desc?: string;
 }
 
 interface NotificationContextType {
@@ -17,70 +17,114 @@ interface NotificationContextType {
   markAllAsRead: () => void;
 }
 
+const notificationStorageKey = 'jb_mock_notifications';
+
+const defaultNotifications: NotificationItem[] = [
+  {
+    id: 'education-poster-created',
+    title: '교육 포스터 생성 완료',
+    desc: '금융소비자보호법_교육포스터.png가 라이브러리에 저장되었습니다.',
+    time: '방금',
+    isRead: false,
+    type: 'education',
+  },
+  {
+    id: 'education-ppt-created',
+    title: '교육 자료 생성 완료',
+    desc: '금융소비자보호법_교육자료.pptx가 라이브러리에 저장되었습니다.',
+    time: '5분 전',
+    isRead: false,
+    type: 'library',
+  },
+  {
+    id: 'review-report-created',
+    title: 'AI 검토 보고서 생성',
+    desc: '광고시안_Ver2_검토보고서.txt가 라이브러리에 저장되었습니다.',
+    time: '1시간 전',
+    isRead: true,
+    type: 'review',
+  },
+  {
+    id: 'policy-update',
+    title: '신규 규정 업데이트',
+    desc: '금융소비자보호법 교육 자료 제작에 반영할 항목이 있습니다.',
+    time: '오늘 09:20',
+    isRead: false,
+    type: 'update',
+  },
+];
+
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+function loadSavedNotifications() {
+  try {
+    const saved = localStorage.getItem(notificationStorageKey);
+    if (!saved) return null;
+
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeNotifications(data: any): NotificationItem[] {
+  if (!Array.isArray(data)) return [];
+
+  return data.map((item, index) => ({
+    id: String(item.id ?? `notification-${index}`),
+    title: item.title ?? '알림',
+    desc: item.desc ?? item.description,
+    time: item.time ?? item.createdAt ?? item.created_at ?? '방금',
+    isRead: Boolean(item.isRead ?? item.is_read ?? false),
+    type: item.type ?? 'update',
+  }));
+}
+
 export function NotificationProvider({ children }: { children: ReactNode }) {
-
-  /*
-  // 프론트 목업용 데이터
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: '1',
-      title: '새로운 규정 업데이트',
-      time: '5분 전',
-      isRead: false,
-      type: 'update',
-    },
-    {
-      id: '2',
-      title: 'AI 검토 완료',
-      time: '1시간 전',
-      isRead: false,
-      type: 'review',
-    },
-    {
-      id: '3',
-      title: '승인 요청',
-      time: '2시간 전',
-      isRead: false,
-      type: 'approval',
-    },
-  ]);
-  */
-
-  // 백엔드 연동 데이터
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(
+    () => loadSavedNotifications() ?? defaultNotifications
+  );
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
         const data = await alarmApi.getList();
+        const normalized = normalizeNotifications(data);
 
-        console.log('알림 API 응답', data);
-
-        setNotifications(data);
+        if (normalized.length > 0) {
+          setNotifications(normalized);
+        }
       } catch (error) {
-        console.error('알림 조회 실패', error);
+        console.warn('알림 API 조회 실패, 임시 알림을 사용합니다.', error);
       }
     };
 
     fetchNotifications();
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  useEffect(() => {
+    localStorage.setItem(notificationStorageKey, JSON.stringify(notifications));
+  }, [notifications]);
+
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
   const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, isRead: true } : n))
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, isRead: true } : notification
+      )
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })));
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllAsRead }}>
+    <NotificationContext.Provider
+      value={{ notifications, unreadCount, markAsRead, markAllAsRead }}
+    >
       {children}
     </NotificationContext.Provider>
   );

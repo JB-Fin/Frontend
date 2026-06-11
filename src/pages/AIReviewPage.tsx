@@ -24,6 +24,7 @@ type ReviewWork = {
 
 const supportedExtensions = ['pdf', 'docx', 'txt'];
 const reviewWorksStorageKey = 'jb_ai_review_recent_works';
+const libraryFilesStorageKey = 'jb_library_mock_files';
 
 const statusConfig = {
   completed: {
@@ -71,6 +72,52 @@ function downloadTextFile(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
+function getFileBaseName(filename: string) {
+  return filename.replace(/\.[^/.]+$/, '');
+}
+
+function buildDerivedFileName(filename: string, suffix: string, extension = 'txt') {
+  return `${getFileBaseName(filename)}_${suffix}.${extension}`;
+}
+
+function getTodayLabel() {
+  return new Intl.DateTimeFormat('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date());
+}
+
+function saveReportMockFile(work: ReviewWork) {
+  try {
+    const savedFiles = localStorage.getItem(libraryFilesStorageKey);
+    const files = savedFiles ? JSON.parse(savedFiles) : [];
+    const currentFiles = Array.isArray(files) ? files : [];
+    const reportName = buildDerivedFileName(work.fileName, '검토보고서');
+    const nextFile = {
+      id: `review-report-${work.id}`,
+      name: reportName,
+      fileName: reportName,
+      type: 'report',
+      ext: 'TXT',
+      size: '32 KB',
+      updatedAt: getTodayLabel(),
+      source: 'ai-review',
+    };
+
+    localStorage.setItem(
+      libraryFilesStorageKey,
+      JSON.stringify([
+        nextFile,
+        ...currentFiles.filter((file: any) => file.id !== nextFile.id),
+      ])
+    );
+  } catch (error) {
+    console.warn('라이브러리 임시 보고서 파일을 저장하지 못했습니다.', error);
+  }
+}
+
 /**
  * 보고서 다운로드
  * - reportUrl이 있으면 fetch → blob → 다운로드
@@ -91,7 +138,7 @@ async function downloadReport(work: ReviewWork) {
         : contentType.includes('word') || contentType.includes('openxml')
         ? 'docx'
         : 'txt';
-      anchor.download = `${work.fileName}-검토보고서.${ext}`;
+      anchor.download = buildDerivedFileName(work.fileName, '검토보고서', ext);
       anchor.click();
       URL.revokeObjectURL(url);
       return;
@@ -126,7 +173,7 @@ async function downloadReport(work: ReviewWork) {
     work.revisedDocument,
   ];
 
-  downloadTextFile(`${work.fileName}-검토보고서.txt`, lines.join('\n'));
+  downloadTextFile(buildDerivedFileName(work.fileName, '검토보고서'), lines.join('\n'));
 }
 
 function highlightSentence(text: string, sentences: string | string[]) {
@@ -376,7 +423,7 @@ export function AIReviewPage() {
 
       const newWork: ReviewWork = {
         id: Number(reviewResponse.review_id ?? Date.now()),
-        title: uploadedFile.fileName.replace(/\.[^/.]+$/, ''),
+        title: getFileBaseName(uploadedFile.fileName),
         requester: '김준또',
         status: 'completed',
         issues: Number(reviewResponse.summary?.total_issues ?? highlights.length ?? 0),
@@ -393,6 +440,7 @@ export function AIReviewPage() {
       };
 
       setWorks((current) => [newWork, ...current]);
+      saveReportMockFile(newWork);
       setUploadedFile(null);
     } catch (error) {
       console.error('검토 요청 실패', error);
@@ -543,12 +591,12 @@ function ReviewWorkCard({
 
   const handleDownloadOriginal = (event: MouseEvent) => {
     event.stopPropagation();
-    downloadTextFile(`${work.fileName}-원본.txt`, work.originalDocument);
+    downloadTextFile(buildDerivedFileName(work.fileName, '원본'), work.originalDocument);
   };
 
   const handleDownloadRevised = (event: MouseEvent) => {
     event.stopPropagation();
-    downloadTextFile(`${work.fileName}-수정본.txt`, work.revisedDocument);
+    downloadTextFile(buildDerivedFileName(work.fileName, '수정본'), work.revisedDocument);
   };
 
   const handleDownloadReport = (event: MouseEvent) => {
@@ -696,12 +744,12 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
           <DocumentPanel
             title="원본 문서"
             content={work.originalDocument}
-            onDownload={() => downloadTextFile(`${work.fileName}-원본.txt`, work.originalDocument)}
+            onDownload={() => downloadTextFile(buildDerivedFileName(work.fileName, '원본'), work.originalDocument)}
           />
           <DocumentPanel
             title="수정본"
             content={work.revisedDocument}
-            onDownload={() => downloadTextFile(`${work.fileName}-수정본.txt`, work.revisedDocument)}
+            onDownload={() => downloadTextFile(buildDerivedFileName(work.fileName, '수정본'), work.revisedDocument)}
             revised
           />
         </div>

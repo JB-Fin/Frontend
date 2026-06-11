@@ -10,6 +10,7 @@ import { NotificationWidget } from '../components/dashboard/widgets/Notification
 import { TaskHistoryWidget } from '../components/dashboard/widgets/TaskHistoryWidget';
 import { defaultDashboardWidgets } from '../constants/dashboardWidgets';
 import { useNotifications } from '../context/NotificationContext';
+import { useChatStore } from '../store/chatStore';
 import { useDashboardStore } from '../store/useDashboardStore';
 import type { WidgetType } from '../types/widget';
 
@@ -44,6 +45,7 @@ export function DashboardPage() {
   const setWidgets = useDashboardStore((state) => state.setWidgets);
   const removeWidget = useDashboardStore((state) => state.removeWidget);
   const updateWidget = useDashboardStore((state) => state.updateWidget);
+  const resetChatMessages = useChatStore((state) => state.resetMessages);
 
   const { notifications } = useNotifications();
 
@@ -130,6 +132,9 @@ export function DashboardPage() {
               onRemove={() => handleRemove(widget.id)}
               onResize={(colSpan, rowSpan) =>
                 handleResize(widget.id, colSpan, rowSpan)
+              }
+              onRefresh={
+                widget.type === 'ai-chat' ? resetChatMessages : undefined
               }
             >
               {renderWidgetContent(widget.type, widget.title)}
