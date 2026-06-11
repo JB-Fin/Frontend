@@ -17,11 +17,13 @@ type ReviewWork = {
   originalDocument: string;
   revisedDocument: string;
   riskSentence: string;
+  riskSentences?: string[];
   suggestion: string;
   reportUrl?: string | null; // 보고서 다운로드 URL (백에서 내려줄 경우)
 };
 
 const supportedExtensions = ['pdf', 'docx', 'txt'];
+const reviewWorksStorageKey = 'jb_ai_review_recent_works';
 
 const statusConfig = {
   completed: {
@@ -127,14 +129,65 @@ async function downloadReport(work: ReviewWork) {
   downloadTextFile(`${work.fileName}-검토보고서.txt`, lines.join('\n'));
 }
 
-function highlightSentence(text: string, sentence: string) {
-  if (!sentence || !text.includes(sentence)) return text;
-  const [before, after] = text.split(sentence);
+function highlightSentence(text: string, sentences: string | string[]) {
+  const targets = (Array.isArray(sentences) ? sentences : [sentences])
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+
+  if (targets.length === 0) return text;
+
+  const ranges: Array<{ start: number; end: number; text: string }> = [];
+
+  targets.forEach((target) => {
+    let searchFrom = 0;
+
+    while (searchFrom < text.length) {
+      const start = text.indexOf(target, searchFrom);
+      if (start === -1) break;
+
+      const end = start + target.length;
+      const overlaps = ranges.some((range) => start < range.end && end > range.start);
+
+      if (!overlaps) {
+        ranges.push({ start, end, text: target });
+      }
+
+      searchFrom = end;
+    }
+  });
+
+  if (ranges.length === 0) return text;
+
+  ranges.sort((a, b) => a.start - b.start);
+
+  const parts = [];
+  let cursor = 0;
+
+  ranges.forEach((range, index) => {
+    if (cursor < range.start) {
+      parts.push(text.slice(cursor, range.start));
+    }
+
+    parts.push(
+      <mark
+        key={`${range.start}-${range.end}-${index}`}
+        className="rounded bg-yellow-200 px-1 text-yellow-950"
+      >
+        {range.text}
+      </mark>
+    );
+
+    cursor = range.end;
+  });
+
+  if (cursor < text.length) {
+    parts.push(text.slice(cursor));
+  }
+
   return (
     <>
-      {before}
-      <mark className="rounded bg-yellow-200 px-1 text-yellow-950">{sentence}</mark>
-      {after}
+      {parts}
     </>
   );
 }
@@ -143,7 +196,18 @@ export function AIReviewPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [dragActive, setDragActive] = useState(false);
-  const [works, setWorks] = useState<ReviewWork[]>([]);
+  const [works, setWorks] = useState<ReviewWork[]>(() => {
+    try {
+      const savedWorks = localStorage.getItem(reviewWorksStorageKey);
+      if (!savedWorks) return [];
+
+      const parsedWorks = JSON.parse(savedWorks);
+      return Array.isArray(parsedWorks) ? parsedWorks : [];
+    } catch (error) {
+      console.warn('최근 검토 내역을 불러오지 못했습니다.', error);
+      return [];
+    }
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadError, setUploadError] = useState('');
   const [selectedWork, setSelectedWork] = useState<ReviewWork | null>(null);
@@ -174,6 +238,14 @@ export function AIReviewPage() {
         return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
       });
   }, [searchTerm, works]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(reviewWorksStorageKey, JSON.stringify(works));
+    } catch (error) {
+      console.warn('최근 검토 내역을 저장하지 못했습니다.', error);
+    }
+  }, [works]);
 
   const addFiles = async (files: FileList | File[]) => {
     const selectedFiles = Array.from(files);
@@ -283,6 +355,9 @@ export function AIReviewPage() {
 
       const highlights = reviewResponse.highlights ?? [];
       const firstHighlight = highlights[0] ?? {};
+      const riskSentences = highlights
+        .map((item: any) => item.original_text ?? item.highlight_text ?? '')
+        .filter((sentence: string) => sentence.trim().length > 0);
 
       const originalText = highlights
         .map((item: any, index: number) => `${index + 1}. ${item.original_text ?? item.highlight_text ?? ''}`)
@@ -310,7 +385,9 @@ export function AIReviewPage() {
         originalDocument: originalText || '원본 문서 내용이 없습니다.',
         revisedDocument: revisedText || '수정본 문서 내용이 없습니다.',
         riskSentence:
-          firstHighlight.original_text ?? firstHighlight.highlight_text ?? '위험 문장이 없습니다.',
+          riskSentences.join('\n\n') ||
+          (firstHighlight.original_text ?? firstHighlight.highlight_text ?? '위험 문장이 없습니다.'),
+        riskSentences,
         suggestion: suggestionText || '수정 제안이 없습니다.',
         reportUrl, // 보고서 URL (없으면 null → 텍스트 보고서 fallback)
       };
@@ -601,7 +678,10 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
             <div className="rounded-lg bg-white/80 p-4">
               <p className="mb-2 text-sm font-semibold text-gray-900">위험문장 하이라이트</p>
               <p className="text-sm leading-7 text-gray-700">
-                {highlightSentence(work.originalDocument, work.riskSentence)}
+                {highlightSentence(
+                  work.originalDocument,
+                  work.riskSentences?.length ? work.riskSentences : work.riskSentence
+                )}
               </p>
             </div>
             <div className="rounded-lg bg-white/80 p-4">
