@@ -89,6 +89,16 @@ function getTodayLabel() {
   }).format(new Date());
 }
 
+function getReviewWorkKey(work: ReviewWork, index: number) {
+  return [
+    work.id,
+    work.createdAt,
+    work.fileName,
+    work.title,
+    index,
+  ].join('|');
+}
+
 function saveReportMockFile(work: ReviewWork) {
   try {
     const savedFiles = localStorage.getItem(libraryFilesStorageKey);
@@ -565,8 +575,12 @@ export function AIReviewPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {sortedWorks.map((work) => (
-              <ReviewWorkCard key={work.id} work={work} onSelect={setSelectedWork} />
+            {sortedWorks.map((work, index) => (
+              <ReviewWorkCard
+                key={getReviewWorkKey(work, index)}
+                work={work}
+                onSelect={setSelectedWork}
+              />
             ))}
           </div>
         )}
