@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { alarmApi } from '../services/alarmApi';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 
 export interface NotificationItem {
   id: string;
@@ -16,8 +15,6 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
 }
-
-const notificationStorageKey = 'jb_mock_notifications';
 
 const defaultNotifications: NotificationItem[] = [
   {
@@ -41,7 +38,7 @@ const defaultNotifications: NotificationItem[] = [
     title: 'AI 검토 보고서 생성',
     desc: '광고시안_Ver2_검토보고서.txt가 라이브러리에 저장되었습니다.',
     time: '1시간 전',
-    isRead: true,
+    isRead: false,
     type: 'review',
   },
   {
@@ -56,56 +53,15 @@ const defaultNotifications: NotificationItem[] = [
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-function loadSavedNotifications() {
-  try {
-    const saved = localStorage.getItem(notificationStorageKey);
-    if (!saved) return null;
-
-    const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function normalizeNotifications(data: any): NotificationItem[] {
-  if (!Array.isArray(data)) return [];
-
-  return data.map((item, index) => ({
-    id: String(item.id ?? `notification-${index}`),
-    title: item.title ?? '알림',
-    desc: item.desc ?? item.description,
-    time: item.time ?? item.createdAt ?? item.created_at ?? '방금',
-    isRead: Boolean(item.isRead ?? item.is_read ?? false),
-    type: item.type ?? 'update',
+function createInitialNotifications() {
+  return defaultNotifications.map((notification) => ({
+    ...notification,
+    isRead: false,
   }));
 }
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(
-    () => loadSavedNotifications() ?? defaultNotifications
-  );
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await alarmApi.getList();
-        const normalized = normalizeNotifications(data);
-
-        if (normalized.length > 0) {
-          setNotifications(normalized);
-        }
-      } catch (error) {
-        console.warn('알림 API 조회 실패, 임시 알림을 사용합니다.', error);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(notificationStorageKey, JSON.stringify(notifications));
-  }, [notifications]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(createInitialNotifications);
 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
