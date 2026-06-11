@@ -4,7 +4,6 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
-import { pageTitles } from '../../app/pageTitles';
 
 type PageKey = 'home' | 'ai-chat' | 'ai-review' | 'education-content' | 'library' | 'calendar' | 'settings';
 
@@ -59,13 +58,7 @@ export default function PlatformLayout() {
 
         <main className={`transition-[margin] duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
           <header className="sticky top-0 z-30 h-[104px] border-b border-white/20 bg-white/75 shadow-sm backdrop-blur-md">
-            <div className="grid h-full grid-cols-[minmax(0,1fr)_auto] items-center gap-6 px-8">
-              <div className="min-w-0">
-                <h1 className="truncate text-2xl font-bold text-gray-900">{pageTitles[currentPage] || '플랫폼'}</h1>
-                <p className="mt-1 truncate text-sm text-gray-700">
-                  준또배기 컴플라이언스 AI 플랫폼에 오신 것을 환영합니다.
-                </p>
-              </div>
+            <div className="flex h-full items-center justify-end px-8">
               <div className="flex w-[400px] shrink-0 justify-end">
                 <TopBar />
               </div>

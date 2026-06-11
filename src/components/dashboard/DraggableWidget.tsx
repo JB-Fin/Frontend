@@ -13,6 +13,7 @@ interface DraggableWidgetProps {
   moveWidget: (dragIndex: number, hoverIndex: number) => void;
   onRemove: () => void;
   onResize: (newColSpan: number, newRowSpan: number) => void;
+  onRefresh?: () => void;
 }
 
 const ITEM_TYPE = 'WIDGET';
@@ -29,6 +30,7 @@ export function DraggableWidget({
   moveWidget,
   onRemove,
   onResize,
+  onRefresh,
 }: DraggableWidgetProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [showMenu, setShowMenu] = useState(false);
@@ -114,10 +116,18 @@ export function DraggableWidget({
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
                 <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
-                  <button className="flex w-full items-center gap-2 rounded-t-lg px-4 py-2 text-left text-gray-800 hover:bg-white/80">
-                    <RefreshCw className="h-4 w-4" />
-                    새로고침
-                  </button>
+                  {onRefresh && (
+                    <button
+                      onClick={() => {
+                        onRefresh();
+                        setShowMenu(false);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-t-lg px-4 py-2 text-left text-gray-800 hover:bg-white/80"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      새로고침
+                    </button>
+                  )}
                   <button className="flex w-full items-center gap-2 px-4 py-2 text-left text-gray-800 hover:bg-white/80">
                     <Maximize2 className="h-4 w-4" />
                     전체화면

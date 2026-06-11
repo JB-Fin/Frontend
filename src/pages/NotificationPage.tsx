@@ -1,122 +1,195 @@
-import React, { useState } from 'react';
-import { useNotifications } from '../context/NotificationContext';
-import { Bell, CheckSquare, AlertCircle, FileText } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Bell,
+  BookOpen,
+  CheckCircle,
+  FileText,
+  Info,
+  Library,
+  ShieldCheck,
+} from 'lucide-react';
+import { useNotifications, type NotificationItem } from '../context/NotificationContext';
 
-type Filter = '전체' | '읽지 않음' | '읽음'
+type Filter = 'all' | 'unread' | 'read';
+
+const filters: { id: Filter; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'unread', label: '안읽음' },
+  { id: 'read', label: '읽음' },
+];
+
+const notificationStyle: Record<
+  NotificationItem['type'],
+  {
+    icon: typeof Bell;
+    bg: string;
+    color: string;
+    border: string;
+    panel: string;
+  }
+> = {
+  update: {
+    icon: Info,
+    bg: 'bg-blue-100',
+    color: 'text-blue-700',
+    border: 'border-blue-200',
+    panel: 'from-blue-50 to-white',
+  },
+  review: {
+    icon: ShieldCheck,
+    bg: 'bg-emerald-100',
+    color: 'text-emerald-700',
+    border: 'border-emerald-200',
+    panel: 'from-emerald-50 to-white',
+  },
+  approval: {
+    icon: CheckCircle,
+    bg: 'bg-purple-100',
+    color: 'text-purple-700',
+    border: 'border-purple-200',
+    panel: 'from-purple-50 to-white',
+  },
+  education: {
+    icon: BookOpen,
+    bg: 'bg-orange-100',
+    color: 'text-orange-700',
+    border: 'border-orange-200',
+    panel: 'from-orange-50 to-white',
+  },
+  library: {
+    icon: Library,
+    bg: 'bg-pink-100',
+    color: 'text-pink-700',
+    border: 'border-pink-200',
+    panel: 'from-pink-50 to-white',
+  },
+};
 
 export function NotificationPage() {
-  const { notifications, markAsRead, markAllAsRead } = useNotifications();
-  const [filter, setFilter] = useState<Filter>('전체')
-
-  const filtered = notifications.filter(n => {
-    if (filter === '읽지 않음') return !n.isRead
-    if (filter === '읽음') return n.isRead
-    return true
-  })
-
-  const unreadCount = notifications.filter(n => !n.isRead).length
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'update': return <AlertCircle className="h-5 w-5 text-blue-600" />;
-      case 'review': return <FileText className="h-5 w-5 text-green-600" />;
-      default: return <CheckSquare className="h-5 w-5 text-purple-600" />;
-    }
-  };
-
-  const FILTERS: Filter[] = ['전체', '읽지 않음', '읽음']
+  const { notifications, markAllAsRead, markAsRead } = useNotifications();
+  const [filter, setFilter] = useState<Filter>('all');
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const readCount = notifications.length - unreadCount;
+  const filtered = notifications.filter((notification) => {
+    if (filter === 'unread') return !notification.isRead;
+    if (filter === 'read') return notification.isRead;
+    return true;
+  });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 p-6">
-
-      {/* 헤더 */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-        <div className="flex items-center gap-2">
-          <Bell className="h-6 w-6 text-gray-700" />
-          <h1 className="text-2xl font-bold text-gray-900">전체 알림 내역</h1>
-          {unreadCount > 0 && (
-            <span
-              className="ml-1 rounded-full px-2 py-0.5 text-xs font-bold text-white"
-              style={{ background: '#1B3A6B' }}
-            >
-              {unreadCount}
-            </span>
-          )}
-        </div>
-        {unreadCount > 0 && (
+    <div className="mx-auto max-w-5xl space-y-6">
+      <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="mb-2 flex items-center gap-3">
+              <div className="rounded-lg bg-red-100 p-2.5">
+                <Bell className="h-5 w-5 text-red-600" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">알림</h1>
+            </div>
+            <p className="text-sm text-gray-600">
+              생성된 보고서와 교육 자료, 규정 업데이트를 확인하세요.
+            </p>
+          </div>
           <button
+            type="button"
             onClick={markAllAsRead}
-            className="text-sm font-medium hover:underline"
-            style={{ color: '#1B3A6B' }}
+            disabled={unreadCount === 0}
+            className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           >
             모두 읽음 처리
           </button>
-        )}
-      </div>
+        </div>
 
-      {/* 필터 탭 */}
+        <div className="mt-5 grid grid-cols-3 gap-3">
+          <div className="rounded-lg bg-blue-50 p-4">
+            <p className="text-xs font-medium text-blue-700">전체</p>
+            <p className="mt-1 text-2xl font-bold text-blue-950">{notifications.length}</p>
+          </div>
+          <div className="rounded-lg bg-red-50 p-4">
+            <p className="text-xs font-medium text-red-700">안읽음</p>
+            <p className="mt-1 text-2xl font-bold text-red-950">{unreadCount}</p>
+          </div>
+          <div className="rounded-lg bg-emerald-50 p-4">
+            <p className="text-xs font-medium text-emerald-700">읽음</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-950">{readCount}</p>
+          </div>
+        </div>
+      </section>
+
       <div className="flex gap-2">
-        {FILTERS.map(f => (
+        {filters.map((item) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className="rounded-full px-4 py-1.5 text-sm font-medium border transition-all"
-            style={filter === f
-              ? { background: '#1B3A6B', color: '#fff', borderColor: '#1B3A6B' }
-              : { background: '#fff', color: '#5A7A9A', borderColor: '#C8DDF0' }
-            }
+            key={item.id}
+            type="button"
+            onClick={() => setFilter(item.id)}
+            className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+              filter === item.id
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                : 'border border-gray-200 bg-white text-gray-700 hover:bg-blue-50'
+            }`}
           >
-            {f}
-            {f === '읽지 않음' && unreadCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-xs text-white">
-                {unreadCount}
-              </span>
-            )}
+            {item.label}
           </button>
         ))}
       </div>
 
-      {/* 알림 목록 */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <section className="space-y-3">
         {filtered.length === 0 ? (
-          <p className="py-12 text-center text-gray-500">
-            {filter === '읽지 않음' ? '읽지 않은 알림이 없습니다.' : '알림이 없습니다.'}
-          </p>
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white/70 px-6 py-12 text-center text-gray-500">
+            표시할 알림이 없습니다.
+          </div>
         ) : (
-          <div className="divide-y divide-gray-100">
-            {filtered.map((notification, index) => (
-              <div
-                key={notification.id}
-                onClick={() => markAsRead(notification.id)}
-                className={`flex cursor-pointer items-center justify-between p-5 transition-colors ${
-                  notification.isRead
-                    ? 'bg-white hover:bg-gray-50'
-                    : 'bg-blue-50/40 hover:bg-blue-50/80'
-                } ${index === 0 ? 'rounded-t-2xl' : ''} ${index === filtered.length - 1 ? 'rounded-b-2xl' : ''}`}
-              >
-                <div className="flex items-center gap-4">
-                  {/* 아이콘 — 더 둥글게 */}
-                  <div className={`rounded-2xl p-2.5 ${notification.isRead ? 'bg-gray-100' : 'bg-blue-50'}`}>
-                    {getIcon(notification.type)}
-                  </div>
+          filtered.map((notification) => {
+            const style = notificationStyle[notification.type] ?? notificationStyle.update;
+            const Icon = style.icon ?? FileText;
 
-                  <div>
-                    <p className={`text-sm ${notification.isRead ? 'text-gray-500' : 'font-semibold text-gray-950'}`}>
+            return (
+              <button
+                key={notification.id}
+                type="button"
+                onClick={() => markAsRead(notification.id)}
+                className={`w-full rounded-lg border p-5 text-left shadow-sm transition-all hover:shadow-md ${
+                  notification.isRead
+                    ? 'border-gray-200 bg-white'
+                    : `${style.border} bg-gradient-to-r ${style.panel}`
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`rounded-lg p-3 ${style.bg}`}>
+                    <Icon className={`h-5 w-5 ${style.color}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          notification.isRead
+                            ? 'bg-gray-100 text-gray-500'
+                            : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        {notification.isRead ? '읽음' : '안읽음'}
+                      </span>
+                      <span className="text-xs text-gray-500">{notification.time}</span>
+                    </div>
+                    <p
+                      className={`font-semibold ${
+                        notification.isRead ? 'text-gray-700' : 'text-gray-950'
+                      }`}
+                    >
                       {notification.title}
                     </p>
-                    <span className="mt-1 block text-xs text-gray-400">{notification.time}</span>
+                    <p className="mt-1 text-sm text-gray-600">{notification.desc}</p>
                   </div>
+                  {!notification.isRead && (
+                    <span className="mt-2 h-2.5 w-2.5 rounded-full bg-blue-600" />
+                  )}
                 </div>
-
-                {/* 읽지 않음 표시 */}
-                {!notification.isRead && (
-                  <span className="mr-2 h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
-                )}
-              </div>
-            ))}
-          </div>
+              </button>
+            );
+          })
         )}
-      </div>
+      </section>
     </div>
-  )
+  );
 }

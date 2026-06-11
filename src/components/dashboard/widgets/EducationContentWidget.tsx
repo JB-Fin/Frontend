@@ -1,14 +1,20 @@
-import { useNavigate } from 'react-router-dom'
-import { FileText, GraduationCap, Megaphone } from 'lucide-react'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FileText, GraduationCap, Image } from 'lucide-react';
+import { readLibraryFiles, type LibraryFileItem } from '../../../utils/libraryFiles';
 
-const drafts = [
-  { title: '원금 보장 오인 표현 금지',   status: '포스터 초안' },
-  { title: '고위험 고객 기록 보존 강화', status: 'PPT 개요'   },
-  { title: '민원 보고 기한 명확화',      status: '교육 문구'  },
-]
+function getIcon(file: LibraryFileItem) {
+  if (file.ext === 'PNG' || file.ext === 'JPG' || file.ext === 'JPEG') return Image;
+  return FileText;
+}
 
 export function EducationContentWidget() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [files, setFiles] = useState<LibraryFileItem[]>([]);
+
+  useEffect(() => {
+    setFiles(readLibraryFiles().filter((file) => file.type === 'education').slice(0, 3));
+  }, []);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -18,27 +24,43 @@ export function EducationContentWidget() {
         </div>
         <div>
           <h3 className="font-medium text-gray-900">교육 자료 제작</h3>
-          <p className="text-xs text-gray-600">법안 변경사항 기반 교육 초안</p>
+          <p className="text-xs text-gray-600">라이브러리에 저장된 교육 자료</p>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
-        {drafts.map(draft => (
-          <div
-            key={draft.title}
+        {files.length === 0 ? (
+          <button
+            type="button"
             onClick={() => navigate('/education-content')}
-            className="cursor-pointer rounded-lg border border-gray-200/50 bg-white/90 p-3 transition-all hover:shadow-md"
+            className="w-full rounded-lg border border-dashed border-gray-300 bg-white/70 px-4 py-8 text-center text-sm text-gray-500 hover:border-green-300 hover:bg-green-50/60"
           >
-            <div className="mb-2 flex items-center gap-2">
-              {draft.status === '포스터 초안'
-                ? <Megaphone className="h-4 w-4 text-blue-600" />
-                : <FileText className="h-4 w-4 text-gray-600" />
-              }
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">{draft.title}</span>
-            </div>
-            <span className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-700">{draft.status}</span>
-          </div>
-        ))}
+            교육 자료를 생성하면 여기에 표시됩니다.
+          </button>
+        ) : (
+          files.map((file) => {
+            const Icon = getIcon(file);
+
+            return (
+              <button
+                key={file.id}
+                type="button"
+                onClick={() => navigate('/library')}
+                className="w-full rounded-lg border border-gray-200/50 bg-white/90 p-3 text-left transition-all hover:border-green-200 hover:shadow-md"
+              >
+                <div className="mb-2 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-green-600" />
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
+                    {file.name}
+                  </span>
+                </div>
+                <span className="rounded bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+                  {file.ext} · {file.size}
+                </span>
+              </button>
+            );
+          })
+        )}
       </div>
 
       <button
@@ -49,5 +71,5 @@ export function EducationContentWidget() {
         교육 자료 제작 열기
       </button>
     </div>
-  )
+  );
 }

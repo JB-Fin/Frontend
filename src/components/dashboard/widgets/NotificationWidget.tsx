@@ -1,73 +1,111 @@
-import { AlertCircle, Bell, CheckCircle, Info } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { useNotifications } from '../../../context/NotificationContext'
+import { Bell, BookOpen, CheckCircle, FileText, Info, Library, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../../context/NotificationContext';
+
+const notificationStyle = {
+  update: {
+    icon: Info,
+    color: 'text-blue-700',
+    bg: 'bg-blue-100',
+    border: 'border-blue-200',
+  },
+  review: {
+    icon: ShieldCheck,
+    color: 'text-emerald-700',
+    bg: 'bg-emerald-100',
+    border: 'border-emerald-200',
+  },
+  approval: {
+    icon: CheckCircle,
+    color: 'text-purple-700',
+    bg: 'bg-purple-100',
+    border: 'border-purple-200',
+  },
+  education: {
+    icon: BookOpen,
+    color: 'text-orange-700',
+    bg: 'bg-orange-100',
+    border: 'border-orange-200',
+  },
+  library: {
+    icon: Library,
+    color: 'text-pink-700',
+    bg: 'bg-pink-100',
+    border: 'border-pink-200',
+  },
+};
 
 export function NotificationWidget() {
-  const navigate = useNavigate()
-  const { notifications, markAsRead, unreadCount } = useNotifications()
-
-  const getIconConfig = (type: string) => {
-    switch (type) {
-      case 'update':   return { icon: Info,          color: 'text-blue-600',   bg: 'bg-blue-100'   }
-      case 'review':   return { icon: CheckCircle,   color: 'text-green-600',  bg: 'bg-green-100'  }
-      default:         return { icon: AlertCircle,   color: 'text-yellow-600', bg: 'bg-yellow-100' }
-    }
-  }
-
-  // 최근 3개만 표시
-  const recent = notifications.slice(0, 3)
+  const navigate = useNavigate();
+  const { notifications, markAsRead, unreadCount } = useNotifications();
+  const recent = notifications.slice(0, 4);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="rounded-lg bg-gradient-to-br from-red-100 to-pink-100 p-3">
-          <Bell className="h-6 w-6 text-red-600" />
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-gradient-to-br from-red-100 to-pink-100 p-3">
+            <Bell className="h-6 w-6 text-red-600" />
+          </div>
+          <div>
+            <h3 className="font-medium text-gray-900">최근 알림</h3>
+            <p className="text-xs text-gray-600">
+              {unreadCount > 0 ? `안읽음 ${unreadCount}건` : '모두 읽음'}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-medium text-gray-900">최근 알림</h3>
-          <p className="text-xs text-gray-600">
-            {unreadCount > 0 ? `새 알림 ${unreadCount}건` : '새 알림 없음'}
-          </p>
-        </div>
+        <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">
+          {unreadCount}
+        </span>
       </div>
 
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-2">
-        {recent.length === 0 ? (
-          <p className="py-4 text-center text-xs text-gray-400">알림이 없습니다.</p>
-        ) : (
-          recent.map((n) => {
-            const { icon: Icon, color, bg } = getIconConfig(n.type)
-            return (
-              <div
-                key={n.id}
-                onClick={() => markAsRead(n.id)}
-                className={`group cursor-pointer rounded-lg border p-3 transition-all hover:shadow-md ${
-                  n.isRead
-                    ? 'border-gray-200/50 bg-white/90'
-                    : 'border-blue-200 bg-blue-50/60'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`flex-shrink-0 rounded-lg p-2 ${bg}`}>
-                    <Icon className={`h-4 w-4 ${color}`} />
+        {recent.map((notification) => {
+          const style = notificationStyle[notification.type] ?? notificationStyle.update;
+          const Icon = style.icon ?? FileText;
+
+          return (
+            <button
+              key={notification.id}
+              type="button"
+              onClick={() => markAsRead(notification.id)}
+              className={`group w-full rounded-lg border p-3 text-left transition-all hover:shadow-md ${
+                notification.isRead
+                  ? 'border-gray-200/70 bg-white/90'
+                  : `${style.border} bg-gradient-to-r from-white to-blue-50/80`
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className={`flex-shrink-0 rounded-lg p-2 ${style.bg}`}>
+                  <Icon className={`h-4 w-4 ${style.color}`} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        notification.isRead
+                          ? 'bg-gray-100 text-gray-500'
+                          : 'bg-blue-600 text-white'
+                      }`}
+                    >
+                      {notification.isRead ? '읽음' : '안읽음'}
+                    </span>
+                    {!notification.isRead && <span className="h-2 w-2 rounded-full bg-blue-600" />}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-sm transition-colors group-hover:text-blue-600 ${
-                      n.isRead ? 'font-medium text-gray-900' : 'font-semibold text-gray-900'
-                    }`}>
-                      {n.title}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-600">{n.time}</p>
-                  </div>
-                  {/* 읽지 않음 표시 */}
-                  {!n.isRead && (
-                    <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500" />
-                  )}
+                  <p
+                    className={`truncate text-sm group-hover:text-blue-700 ${
+                      notification.isRead ? 'font-medium text-gray-700' : 'font-bold text-gray-950'
+                    }`}
+                  >
+                    {notification.title}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-gray-500">{notification.desc}</p>
+                  <p className="mt-1 text-xs text-gray-400">{notification.time}</p>
                 </div>
               </div>
-            )
-          })
-        )}
+            </button>
+          );
+        })}
       </div>
 
       <button
@@ -77,5 +115,5 @@ export function NotificationWidget() {
         모든 알림 보기 →
       </button>
     </div>
-  )
+  );
 }

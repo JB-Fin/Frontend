@@ -11,20 +11,29 @@ interface ChatState {
   messages: ChatMessage[]
   addMessage: (msg: ChatMessage) => void
   setMessages: (messages: ChatMessage[]) => void
+  resetMessages: () => void
 }
 
-export const useChatStore = create<ChatState>((set) => ({
-  messages: [
+function now() {
+  return new Date().toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function createInitialMessages(): ChatMessage[] {
+  return [
     {
       id: 1,
       type: 'ai',
       text: '안녕하세요! JB금융그룹 컴플라이언스 AI 어시스턴트입니다.',
-      timestamp: new Date().toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+      timestamp: now(),
     },
-  ],
+  ]
+}
+
+export const useChatStore = create<ChatState>((set) => ({
+  messages: createInitialMessages(),
 
   addMessage: (msg) =>
     set((state) => ({
@@ -32,4 +41,5 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
 
   setMessages: (messages) => set({ messages }),
+  resetMessages: () => set({ messages: createInitialMessages() }),
 }))
