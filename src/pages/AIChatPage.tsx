@@ -299,8 +299,8 @@ useEffect(() => {
             </div>
 
             <div>
-              <h2 className="font-bold text-gray-900">AI assistant</h2>
-              <p className="text-xs text-gray-600">Compliance 전문 AI</p>
+              <h2 className="text-lg font-bold text-gray-900">AI assistant</h2>
+              <p className="text-sm text-gray-600">Compliance 전문 AI</p>
             </div>
           </div>
         </div>
@@ -330,13 +330,13 @@ useEffect(() => {
               <div className={`flex-1 ${message.type === 'user' ? 'text-right' : ''}`}>
                 <div className="mb-1 flex items-center gap-2">
                   <span
-                    className={`text-sm font-medium text-gray-900 ${
+                    className={`text-base font-medium text-gray-900 ${
                       message.type === 'user' ? 'ml-auto' : ''
                     }`}
                   >
                     {message.type === 'ai' ? 'AI assistant' : '김준또'}
                   </span>
-                  <span className="text-xs text-gray-500">{message.timestamp}</span>
+                  <span className="text-sm text-gray-500">{message.timestamp}</span>
                 </div>
 
                 <div
@@ -346,7 +346,7 @@ useEffect(() => {
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap break-words text-sm leading-7">
+                  <p className="whitespace-pre-wrap break-words text-base leading-7">
                     {formatMessageForDisplay(message)}
                   </p>
                 </div>
@@ -360,14 +360,14 @@ useEffect(() => {
 
         {messages.length === 1 && (
           <div className="px-6 pb-3">
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="mx-auto grid max-w-4xl grid-cols-2 gap-2">
               {suggestedQuestions.map((question) => (
                 <button
                   key={question}
                   type="button"
                   onClick={() => handleSend(question)}
                   disabled={isSending}
-                  className="rounded-md border border-blue-200/50 bg-blue-50/80 px-3 py-2 text-center text-xs text-blue-700 transition-colors hover:bg-blue-100/80 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="whitespace-nowrap rounded-md border border-blue-200/50 bg-blue-50/80 px-4 py-2.5 text-center text-base font-medium text-blue-700 transition-colors hover:bg-blue-100/80 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {question}
                 </button>
@@ -387,7 +387,7 @@ useEffect(() => {
                 }
               }}
               placeholder="Compliance 관련 질문을 입력하세요..."
-              className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-5 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-5 py-3 text-base text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
 
             <button

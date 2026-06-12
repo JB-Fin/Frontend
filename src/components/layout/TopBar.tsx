@@ -1,36 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, Globe, LogOut, Settings, User } from 'lucide-react';
-import { useLanguage, type AppLanguage } from '../../context/LanguageContext';
+import { Bell, ChevronDown, Globe, LogOut, Trash2, User } from 'lucide-react';
+import { translateLabel, useLanguage, type AppLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { authApi } from '../../services/authApi';
 import { languageApi } from '../../services/languageApi';
 
 type TopBarMenu = 'language' | 'notifications' | 'profile' | null;
 
-const topBarVietnameseText: Record<string, string> = {
-  '알림': 'Thông báo',
-  '모두 보기': 'Xem tất cả',
-  '김준법': 'Kim Junbeop',
-  '법무팀': 'Đội pháp vụ',
-  '프로필': 'Hồ sơ',
-  '계정 설정': 'Cài đặt tài khoản',
-  '로그아웃': 'Đăng xuất',
-  '새로운 규정 업데이트': 'Cập nhật quy định mới',
-  'AI 검토 완료': 'Đánh giá AI hoàn tất',
-  '승인 요청': 'Yêu cầu phê duyệt',
-  '5분 전': '5 phút trước',
-  '1시간 전': '1 giờ trước',
-  '2시간 전': '2 giờ trước',
-};
-
 export function TopBar() {
   const navigate = useNavigate();
   const { currentLanguage, currentLanguageLabel, languages, setLanguage } = useLanguage();
-  const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { notifications, unreadCount, deleteNotification, markAsRead } = useNotifications();
   const [openMenu, setOpenMenu] = useState<TopBarMenu>(null);
-  const isVietnamese = currentLanguage === 'vi';
-  const t = (text: string) => (isVietnamese ? topBarVietnameseText[text] ?? text : text);
+  const t = (text: string) => translateLabel(text, currentLanguage);
 
   const toggleMenu = (menu: TopBarMenu) => {
     setOpenMenu((current) => (current === menu ? null : menu));
@@ -117,10 +100,17 @@ export function TopBar() {
               </div>
               <div className="max-h-96 overflow-y-auto">
                 {notifications.map((notification) => (
-                  <button
+                  <div
                     key={notification.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => markAsRead(notification.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        markAsRead(notification.id);
+                      }
+                    }}
                     className={`w-full border-b border-gray-100/50 px-4 py-3 text-left transition-colors hover:bg-blue-50/50 ${
                       notification.isRead ? 'opacity-55' : 'bg-blue-50/30'
                     }`}
@@ -130,9 +120,23 @@ export function TopBar() {
                         <p className="text-sm text-gray-900">{t(notification.title)}</p>
                         <p className="mt-1 text-xs text-gray-600">{t(notification.time)}</p>
                       </div>
-                      {!notification.isRead && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600" />}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {!notification.isRead && <span className="h-2 w-2 rounded-full bg-blue-600" />}
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
+                          className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                          aria-label={`${notification.title} 삭제`}
+                          title="삭제"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
               <div className="border-t border-gray-200/50 px-4 py-2">
@@ -170,7 +174,7 @@ export function TopBar() {
             <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
                 <p className="font-medium text-gray-900">{t('김준법')}</p>
-                <p className="text-xs text-gray-600">juntto@jbgroup.com</p>
+                <p className="text-xs text-gray-600">junbeop@jbgroup.com</p>
               </div>
               <div className="py-2">
                 <button
@@ -180,14 +184,6 @@ export function TopBar() {
                 >
                   <User className="h-4 w-4" />
                   {t('프로필')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goTo('/settings?tab=security')}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-gray-800 hover:bg-blue-50/80"
-                >
-                  <Settings className="h-4 w-4" />
-                  {t('계정 설정')}
                 </button>
               </div>
               <div className="border-t border-gray-200/50 py-2">
