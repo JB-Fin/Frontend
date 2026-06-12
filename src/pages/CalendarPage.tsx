@@ -110,7 +110,7 @@ export function CalendarPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="mb-2 text-2xl font-bold text-gray-900">캘린더</h2>
-          <p className="text-gray-600">컴플라이언스 일정 및 이벤트 관리</p>
+          <p className="text-gray-600">Compliance 일정 및 이벤트 관리</p>
         </div>
 
         <button

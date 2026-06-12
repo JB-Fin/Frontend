@@ -4,9 +4,10 @@ import { Bot, Send, User } from 'lucide-react'
 import { useChatStore } from '../../../store/chatStore'
 
 const suggestedQuestions = [
-  '최근 금융규제 변경사항은?',
-  '내부통제 가이드라인 확인',
-  '리스크 평가 도구 사용법',
+  '최근 금융소비자보호법 개정 내용은?',
+  '신규 대출 상품 출시 전 Compliance 체크리스트',
+  'AML 정기 평가 필수 항목',
+  '내부통제 시스템 운영 가이드라인',
 ]
 
 function now() {
@@ -90,15 +91,14 @@ export function AIChatWidget() {
       </div>
 
       {messages.length === 1 && (
-        <div className="mb-4">
-          <p className="mb-2 text-xs text-gray-600">추천 질문:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-3">
+          <div className="grid grid-cols-2 gap-1.5">
             {suggestedQuestions.map((question) => (
               <button
                 key={question}
                 type="button"
                 onClick={() => handleSend(question)}
-                className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-3 py-1.5 text-xs text-blue-700 transition-colors hover:bg-blue-100/80"
+                className="flex min-h-8 items-center justify-center rounded-md border border-blue-200/50 bg-blue-50/80 px-2.5 py-1 text-center text-[11px] leading-4 text-blue-700 transition-colors hover:bg-blue-100/80"
               >
                 {question}
               </button>

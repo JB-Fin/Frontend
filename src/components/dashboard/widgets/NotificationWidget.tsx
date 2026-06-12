@@ -69,20 +69,27 @@ export function NotificationWidget() {
               key={notification.id}
               type="button"
               onClick={() => markAsRead(notification.id)}
-              className={`group w-full rounded-lg border p-3 text-left transition-all hover:shadow-md ${
+              className={`group flex min-h-[76px] w-full items-center rounded-lg border p-3 text-left transition-all hover:shadow-md ${
                 notification.isRead
                   ? 'border-gray-200/70 bg-white/90'
                   : `${style.border} bg-gradient-to-r from-white to-blue-50/80`
               }`}
             >
-              <div className="flex items-start gap-3">
-                <div className={`flex-shrink-0 rounded-lg p-2 ${style.bg}`}>
+              <div className="flex w-full items-center gap-3">
+                <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${style.bg}`}>
                   <Icon className={`h-4 w-4 ${style.color}`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center gap-2">
+                    <p
+                      className={`min-w-0 flex-1 truncate text-sm group-hover:text-blue-700 ${
+                        notification.isRead ? 'font-medium text-gray-700' : 'font-bold text-gray-950'
+                      }`}
+                    >
+                      {notification.title}
+                    </p>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                         notification.isRead
                           ? 'bg-gray-100 text-gray-500'
                           : 'bg-blue-600 text-white'
@@ -90,17 +97,8 @@ export function NotificationWidget() {
                     >
                       {notification.isRead ? '읽음' : '안읽음'}
                     </span>
-                    {!notification.isRead && <span className="h-2 w-2 rounded-full bg-blue-600" />}
                   </div>
-                  <p
-                    className={`truncate text-sm group-hover:text-blue-700 ${
-                      notification.isRead ? 'font-medium text-gray-700' : 'font-bold text-gray-950'
-                    }`}
-                  >
-                    {notification.title}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-gray-500">{notification.desc}</p>
-                  <p className="mt-1 text-xs text-gray-400">{notification.time}</p>
+                  <p className="text-xs text-gray-400">{notification.time}</p>
                 </div>
               </div>
             </button>

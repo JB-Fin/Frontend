@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { GripVertical, Info, Maximize2, MoreVertical, RefreshCw, X } from 'lucide-react';
+import { GripVertical, Info, MoreVertical, RefreshCw, X } from 'lucide-react';
 
 interface DraggableWidgetProps {
   id: string;
@@ -128,11 +128,7 @@ export function DraggableWidget({
                       새로고침
                     </button>
                   )}
-                  <button className="flex w-full items-center gap-2 px-4 py-2 text-left text-gray-800 hover:bg-white/80">
-                    <Maximize2 className="h-4 w-4" />
-                    전체화면
-                  </button>
-                  <hr className="my-1 border-gray-200/50" />
+                  {onRefresh && <hr className="my-1 border-gray-200/50" />}
                   <button
                     onClick={() => {
                       onRemove();

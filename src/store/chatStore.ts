@@ -26,7 +26,7 @@ function createInitialMessages(): ChatMessage[] {
     {
       id: 1,
       type: 'ai',
-      text: '안녕하세요! JB금융그룹 컴플라이언스 AI 어시스턴트입니다.',
+      text: '안녕하세요! JB금융그룹 Compliance AI assistant입니다.',
       timestamp: now(),
     },
   ]

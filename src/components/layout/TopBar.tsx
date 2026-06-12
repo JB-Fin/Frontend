@@ -12,7 +12,7 @@ const topBarVietnameseText: Record<string, string> = {
   '알림': 'Thông báo',
   '모두 보기': 'Xem tất cả',
   '김준법': 'Kim Junbeop',
-  '컴플라이언스팀': 'Đội tuân thủ',
+  '법무팀': 'Đội pháp vụ',
   '프로필': 'Hồ sơ',
   '계정 설정': 'Cài đặt tài khoản',
   '로그아웃': 'Đăng xuất',
@@ -60,16 +60,16 @@ export function TopBar() {
 };
 
   return (
-    <div className="flex w-full items-center justify-end gap-3" data-no-translate="true">
+    <div className="flex w-full items-center justify-end gap-2.5" data-no-translate="true">
       <div className="relative" data-no-translate="true">
         <button
           type="button"
           onClick={() => toggleMenu('language')}
-          className="flex w-36 items-center justify-between gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="flex h-11 w-36 items-center justify-between gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
         >
-          <Globe className="h-4 w-4 text-gray-700" />
-          <span className="text-sm text-gray-700">{currentLanguageLabel}</span>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+          <Globe className="h-4 w-4 text-blue-700" />
+          <span className="text-sm font-semibold text-[#082064]">{currentLanguageLabel}</span>
+          <ChevronDown className="h-4 w-4 text-blue-600" />
         </button>
         {openMenu === 'language' && (
           <>
@@ -96,10 +96,10 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('notifications')}
-          className="relative flex h-10 w-10 items-center justify-center rounded-lg border border-white/60 bg-white/80 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
           aria-label={t('알림')}
         >
-          <Bell className="h-5 w-5 text-gray-700" />
+          <Bell className="h-5 w-5 text-blue-700" />
           {unreadCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
               {unreadCount}
@@ -153,16 +153,16 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('profile')}
-          className="flex h-12 w-44 items-center gap-2 rounded-lg border border-white/60 bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm transition-all hover:bg-white/90"
+          className="flex h-11 w-48 items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#082064] to-[#2f74ff] shadow-sm">
             <User className="h-4 w-4 text-white" />
           </div>
-          <div className="hidden text-left md:block">
-            <p className="text-sm font-medium text-gray-900">{t('김준법')}</p>
-            <p className="text-xs text-gray-600">{t('컴플라이언스팀')}</p>
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 text-center md:flex">
+            <span className="shrink-0 text-xs font-semibold text-blue-700">{t('법무팀')}</span>
+            <span className="truncate text-sm font-semibold text-[#082064]">{t('김준법')}</span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+          <ChevronDown className="h-4 w-4 text-blue-600" />
         </button>
         {openMenu === 'profile' && (
           <>

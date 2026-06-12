@@ -4,6 +4,7 @@ export type WidgetType =
   | 'task-history'
   | 'education-content'
   | 'calendar'
+  | 'monthly-calendar'
   | 'notification';
 
 export interface WidgetItem {

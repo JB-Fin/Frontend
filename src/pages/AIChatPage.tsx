@@ -21,7 +21,7 @@ type ChatSession = {
 
 const suggestedQuestions = [
   '최근 금융소비자보호법 개정 내용은?',
-  '신규 대출 상품 출시 전 컴플라이언스 체크리스트',
+  '신규 대출 상품 출시 전 Compliance 체크리스트',
   'AML 정기 평가 필수 항목',
   '내부통제 시스템 운영 가이드라인',
 ]
@@ -37,7 +37,7 @@ function createWelcomeMessage(): ChatMessage {
   return {
     id: Date.now(),
     type: 'ai',
-    text: '안녕하세요. JB금융그룹 컴플라이언스 AI 어시스턴트입니다. 규정, 법령, 내부 정책에 대해 무엇이든 물어보세요.',
+    text: '안녕하세요. JB금융그룹 Compliance AI assistant입니다. 규정, 법령, 내부 정책에 대해 무엇이든 물어보세요.',
     timestamp: now(),
   }
 }
@@ -299,8 +299,8 @@ useEffect(() => {
             </div>
 
             <div>
-              <h2 className="font-bold text-gray-900">AI 어시스턴트</h2>
-              <p className="text-xs text-gray-600">컴플라이언스 전문 AI</p>
+              <h2 className="font-bold text-gray-900">AI assistant</h2>
+              <p className="text-xs text-gray-600">Compliance 전문 AI</p>
             </div>
           </div>
         </div>
@@ -334,7 +334,7 @@ useEffect(() => {
                       message.type === 'user' ? 'ml-auto' : ''
                     }`}
                   >
-                    {message.type === 'ai' ? 'AI 어시스턴트' : '김준또'}
+                    {message.type === 'ai' ? 'AI assistant' : '김준또'}
                   </span>
                   <span className="text-xs text-gray-500">{message.timestamp}</span>
                 </div>
@@ -359,17 +359,15 @@ useEffect(() => {
         </div>
 
         {messages.length === 1 && (
-          <div className="px-6 pb-4">
-            <p className="mb-3 text-sm font-medium text-gray-600">추천 질문</p>
-
-            <div className="grid grid-cols-2 gap-2">
+          <div className="px-6 pb-3">
+            <div className="grid grid-cols-2 gap-1.5">
               {suggestedQuestions.map((question) => (
                 <button
                   key={question}
                   type="button"
                   onClick={() => handleSend(question)}
                   disabled={isSending}
-                  className="rounded-lg border border-blue-200/50 bg-blue-50/80 px-4 py-3 text-left text-sm text-blue-700 transition-colors hover:bg-blue-100/80 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-md border border-blue-200/50 bg-blue-50/80 px-3 py-2 text-center text-xs text-blue-700 transition-colors hover:bg-blue-100/80 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {question}
                 </button>
@@ -388,7 +386,7 @@ useEffect(() => {
                   handleSend()
                 }
               }}
-              placeholder="컴플라이언스 관련 질문을 입력하세요..."
+              placeholder="Compliance 관련 질문을 입력하세요..."
               className="flex-1 rounded-lg border border-gray-200/50 bg-white/90 px-5 py-3 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
 
