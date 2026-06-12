@@ -1,4 +1,4 @@
-import { Bell, BookOpen, CheckCircle, FileText, Info, Library, ShieldCheck } from 'lucide-react';
+import { Bell, BookOpen, CheckCircle, FileText, Info, Library, ShieldCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../../context/NotificationContext';
 
@@ -37,7 +37,7 @@ const notificationStyle = {
 
 export function NotificationWidget() {
   const navigate = useNavigate();
-  const { notifications, markAsRead, unreadCount } = useNotifications();
+  const { notifications, deleteNotification, markAsRead, unreadCount } = useNotifications();
   const recent = notifications.slice(0, 4);
 
   return (
@@ -65,10 +65,17 @@ export function NotificationWidget() {
           const Icon = style.icon ?? FileText;
 
           return (
-            <button
+            <div
               key={notification.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => markAsRead(notification.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  markAsRead(notification.id);
+                }
+              }}
               className={`group flex min-h-[76px] w-full items-center rounded-lg border p-3 text-left transition-all hover:shadow-md ${
                 notification.isRead
                   ? 'border-gray-200/70 bg-white/90'
@@ -97,11 +104,23 @@ export function NotificationWidget() {
                     >
                       {notification.isRead ? '읽음' : '안읽음'}
                     </span>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        deleteNotification(notification.id);
+                      }}
+                      className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      aria-label={`${notification.title} 삭제`}
+                      title="삭제"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                   <p className="text-xs text-gray-400">{notification.time}</p>
                 </div>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>

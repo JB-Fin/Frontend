@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, FileText, Loader2, Upload } from 'lucide-react';
+import { useNotifications } from '../../../context/NotificationContext';
 import { getFileBaseName } from '../../../utils/libraryFiles';
 
 const reviewWorksStorageKey = 'jb_ai_review_recent_works';
@@ -72,6 +73,7 @@ function saveReviewResult(file: File) {
 
 export function AIReviewWidget() {
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isReviewing, setIsReviewing] = useState(false);
@@ -99,7 +101,12 @@ export function AIReviewWidget() {
     setIsReviewing(true);
     setMessage('');
     await new Promise((resolve) => setTimeout(resolve, 500));
-    saveReviewResult(selectedFile);
+    const reviewWork = saveReviewResult(selectedFile);
+    addNotification({
+      title: 'AI 검토 보고서 생성',
+      desc: `${reviewWork.title}_검토보고서.txt가 라이브러리에 저장되었습니다.`,
+      type: 'review',
+    });
     setSelectedFile(null);
     setIsReviewing(false);
     setMessage('검토 요청이 완료되었습니다.');

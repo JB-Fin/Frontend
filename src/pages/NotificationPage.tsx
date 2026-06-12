@@ -7,6 +7,7 @@ import {
   Info,
   Library,
   ShieldCheck,
+  Trash2,
 } from 'lucide-react';
 import { useNotifications, type NotificationItem } from '../context/NotificationContext';
 
@@ -66,7 +67,7 @@ const notificationStyle: Record<
 };
 
 export function NotificationPage() {
-  const { notifications, markAllAsRead, markAsRead } = useNotifications();
+  const { notifications, deleteNotification, markAllAsRead, markAsRead } = useNotifications();
   const [filter, setFilter] = useState<Filter>('all');
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
   const readCount = notifications.length - unreadCount;
@@ -145,10 +146,17 @@ export function NotificationPage() {
             const Icon = style.icon ?? FileText;
 
             return (
-              <button
+              <div
                 key={notification.id}
-                type="button"
+                role="button"
+                tabIndex={0}
                 onClick={() => markAsRead(notification.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    markAsRead(notification.id);
+                  }
+                }}
                 className={`w-full rounded-lg border p-5 text-left shadow-sm transition-all hover:shadow-md ${
                   notification.isRead
                     ? 'border-gray-200 bg-white'
@@ -181,11 +189,25 @@ export function NotificationPage() {
                     </p>
                     <p className="mt-1 text-sm text-gray-600">{notification.desc}</p>
                   </div>
-                  {!notification.isRead && (
-                    <span className="mt-2 h-2.5 w-2.5 rounded-full bg-blue-600" />
-                  )}
+                  <div className="flex shrink-0 items-center gap-3">
+                    {!notification.isRead && (
+                      <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        deleteNotification(notification.id);
+                      }}
+                      className="rounded-md p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      aria-label={`${notification.title} 삭제`}
+                      title="삭제"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-              </button>
+              </div>
             );
           })
         )}

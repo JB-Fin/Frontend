@@ -36,6 +36,8 @@ const INITIAL_EVENTS: EventType[] = [
 interface CalendarContextType {
   events: EventType[]
   addEvent: (event: Omit<EventType, 'id'>) => void
+  updateEvent: (id: number, event: Partial<Omit<EventType, 'id'>>) => void
+  deleteEvent: (id: number) => void
   upcomingEvents: EventType[]
   categoryColorMap: Record<string, string>
   today: string
@@ -49,20 +51,52 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const addEvent = (event: Omit<EventType, 'id'>) => {
     setEvents(prev => [...prev, { ...event, id: Date.now() }])
   }
+  const updateEvent = (
+    id: number,
+    updatedEvent: Partial<Omit<EventType, 'id'>>
+  ) => {
+    setEvents(prev =>
+      prev.map(event =>
+        event.id === id
+        ? { ...event, ...updatedEvent }
+        : event
+      )
+    )
+  }
+  
+  const deleteEvent = (id: number) => {
+    setEvents(prev =>
+      prev.filter(event => event.id !== id)
+    )
+  }
 
   const upcomingEvents = events
     .filter(e => e.date > TODAY)
     .sort((a, b) => a.date.localeCompare(b.date))
-
-  return (
-    <CalendarContext.Provider value={{ events, addEvent, upcomingEvents, categoryColorMap: CATEGORY_COLOR_MAP, today: TODAY }}>
-      {children}
+    
+    return (
+    <CalendarContext.Provider
+    value={{
+      events,
+      addEvent,
+      updateEvent,
+      deleteEvent,
+      upcomingEvents,
+      categoryColorMap: CATEGORY_COLOR_MAP,
+      today: TODAY,
+    }}
+  >
+    {children}
     </CalendarContext.Provider>
   )
 }
 
 export function useCalendar() {
   const ctx = useContext(CalendarContext)
-  if (!ctx) throw new Error('useCalendar must be used within CalendarProvider')
+
+  if (!ctx) {
+    throw new Error('useCalendar must be used within CalendarProvider')
+  }
+
   return ctx
 }

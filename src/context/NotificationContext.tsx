@@ -12,6 +12,8 @@ export interface NotificationItem {
 interface NotificationContextType {
   notifications: NotificationItem[];
   unreadCount: number;
+  addNotification: (notification: Omit<NotificationItem, 'id' | 'time' | 'isRead'>) => void;
+  deleteNotification: (id: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
 }
@@ -65,6 +67,18 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
+  const addNotification = (notification: Omit<NotificationItem, 'id' | 'time' | 'isRead'>) => {
+    setNotifications((prev) => [
+      {
+        ...notification,
+        id: `${notification.type}-${Date.now()}`,
+        time: '방금',
+        isRead: false,
+      },
+      ...prev,
+    ]);
+  };
+
   const markAsRead = (id: string) => {
     setNotifications((prev) =>
       prev.map((notification) =>
@@ -73,13 +87,24 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const deleteNotification = (id: string) => {
+    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+  };
+
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })));
   };
 
   return (
     <NotificationContext.Provider
-      value={{ notifications, unreadCount, markAsRead, markAllAsRead }}
+      value={{
+        notifications,
+        unreadCount,
+        addNotification,
+        deleteNotification,
+        markAsRead,
+        markAllAsRead,
+      }}
     >
       {children}
     </NotificationContext.Provider>

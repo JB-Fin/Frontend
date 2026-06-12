@@ -1,14 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, DragEvent } from 'react';
-import {
-  ClipboardList,
-  Download,
-  FileText,
-  Image,
-  Megaphone,
-  Sparkles,
-  Upload,
-} from 'lucide-react';
+import { ClipboardList, Download, FileText, Image, Megaphone, Sparkles, Upload, } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useNotifications } from '../context/NotificationContext';
 
 type LawChange = {
   id: number;
@@ -29,10 +23,20 @@ type PosterDraft = {
   theme: string;
 };
 
-type PageTab = 'create' | 'gallery';
+type PageTab = 'create' | 'history';
+type ResultTab = 'text' | 'image';
+type EducationHistory = {
+  id: string;
+  title: string;
+  requestText: string;
+  resultSummary: string;
+  createdAt: string;
+  fileName: string;
+};
 
 const emptyFileLabel = '선택된 파일 없음';
 const libraryFilesStorageKey = 'jb_library_mock_files';
+const educationHistoryStorageKey = 'jb_education_work_history';
 
 const financialConsumerProtectionChanges: LawChange[] = [
   {
@@ -122,6 +126,43 @@ function saveEducationMockFiles(sourceFileName: string) {
   }
 }
 
+function saveEducationHistory(
+  fileName: string,
+  requestText: string
+) {
+  try {
+    const nextHistory = {
+      id: `education-history-${Date.now()}`,
+      title: `${getFileBaseName(fileName)} 교육자료 생성`,
+      requestText,
+      resultSummary:
+        '검토 포인트 3개, 교육 안내 문구, 포스터 1개 생성',
+      createdAt: getTodayLabel(),
+      fileName,
+    };
+
+    const saved = localStorage.getItem(
+      educationHistoryStorageKey
+    );
+
+    const parsed = saved ? JSON.parse(saved) : [];
+
+    const current = Array.isArray(parsed)
+      ? parsed
+      : [];
+
+    localStorage.setItem(
+      educationHistoryStorageKey,
+      JSON.stringify([nextHistory, ...current])
+    );
+  } catch (error) {
+    console.warn(
+      '교육자료 작업 이력 저장 실패',
+      error
+    );
+  }
+}
+
 function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
   return selected.map((change, index) => ({
     id: change.id,
@@ -197,6 +238,10 @@ function PosterCard({ poster, compact = false }: { poster: PosterDraft; compact?
 }
 
 export function EducationContentPage() {
+  const location = useLocation();
+  const { addNotification } = useNotifications();
+  const homeFileName = location.state?.fileName;
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [activeTab, setActiveTab] = useState<PageTab>('create');
@@ -209,6 +254,25 @@ export function EducationContentPage() {
   );
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [resultTab, setResultTab] = useState<ResultTab>('text');
+  const [historyItems, setHistoryItems] = useState<EducationHistory[]>([]);
+  const [selectedHistory, setSelectedHistory] = useState<EducationHistory | null>(null);
+
+  useEffect(() => {
+  if (!homeFileName) return;
+
+  setLawFileName(homeFileName);
+
+  setChanges(financialConsumerProtectionChanges);
+
+  setSelectedIds(
+    financialConsumerProtectionChanges.map((change) => change.id)
+  );
+
+  setGeneratedAt(getTodayLabel());
+
+  setActiveTab('create');
+}, [homeFileName]);
 
   const selectedChanges = useMemo(
     () => changes.filter((change) => selectedIds.includes(change.id)),
@@ -216,6 +280,26 @@ export function EducationContentPage() {
   );
   const posterGallery = useMemo(() => buildPosterGallery(selectedChanges), [selectedChanges]);
   const educationCopy = useMemo(() => makeEducationCopy(selectedChanges), [selectedChanges]);
+  
+  const loadHistoryItems = () => {
+  try {
+    const saved = localStorage.getItem(
+      educationHistoryStorageKey
+    );
+
+    const parsed = saved
+      ? JSON.parse(saved)
+      : [];
+
+    setHistoryItems(
+      Array.isArray(parsed)
+        ? parsed
+        : []
+    );
+  } catch {
+    setHistoryItems([]);
+  }
+};
 
   const addLawFile = (files: FileList | File[]) => {
     const file = Array.from(files)[0];
@@ -238,8 +322,21 @@ export function EducationContentPage() {
 
       setChanges(financialConsumerProtectionChanges);
       setSelectedIds(financialConsumerProtectionChanges.map((change) => change.id));
+      
+      saveEducationHistory(
+        lawFileName,
+        requestText
+      );
       saveEducationMockFiles(lawFileName);
+      addNotification({
+        title: '교육 자료 생성 완료',
+        desc: `${getFileBaseName(lawFileName || '금융소비자보호법')}_교육포스터.png가 라이브러리에 저장되었습니다.`,
+        type: 'education',
+      });
+      loadHistoryItems();
+
       setGeneratedAt(getTodayLabel());
+
     } catch (error) {
       console.error('교육 자료 생성 실패:', error);
       alert('교육 자료 생성에 실패했습니다.');
@@ -301,15 +398,15 @@ export function EducationContentPage() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('gallery')}
+            onClick={() => setActiveTab('history')}
             className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition ${
-              activeTab === 'gallery'
+              activeTab === 'history'
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm'
                 : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
             }`}
           >
-            <Image className="h-4 w-4" />
-            포스터 갤러리
+            <FileText className="h-4 w-4" />
+            작업 이력
           </button>
         </div>
         <button
@@ -454,95 +551,211 @@ export function EducationContentPage() {
 
                 {generatedAt && (
                   <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                    {generatedAt}에 포스터 이미지를 생성했고 라이브러리에 저장했습니다.
+                    {generatedAt}에 교육 자료 생성이 완료되었습니다.
                   </div>
                 )}
 
                 <div className="mt-4 rounded-lg border border-gray-200/70 bg-white/90 p-4">
-                  <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
-                    <FileText className="h-4 w-4 text-blue-600" />
-                    교육 안내 문구
-                  </p>
-                  <pre className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
-                    {educationCopy}
-                  </pre>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    downloadText(
-                      '금융소비자보호법_교육_안내_문구.txt',
-                      educationCopy
-                    )
-                  }
-                  disabled={selectedChanges.length === 0}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Download className="h-4 w-4" />
-                  결과 다운로드
-                </button>
-              </section>
+  <div className="mb-4 flex rounded-lg bg-gray-100 p-1">
+    <button
+      type="button"
+      onClick={() => setResultTab('text')}
+      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold ${
+        resultTab === 'text'
+          ? 'bg-white text-blue-700 shadow-sm'
+          : 'text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      교육 안내 문구
+    </button>
+    <button
+      type="button"
+      onClick={() => setResultTab('image')}
+      disabled={!posterGallery[0]}
+      className={`flex-1 rounded-md px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
+        resultTab === 'image'
+          ? 'bg-white text-purple-700 shadow-sm'
+          : 'text-gray-500 hover:text-gray-700'
+      }`}
+    >
+      이미지 미리보기
+    </button>
+  </div>
 
-              {posterGallery[0] && (
-                <section className="rounded-lg border border-white/60 bg-white/85 p-4 shadow-lg backdrop-blur-xl">
-                  <div className="mb-3 flex items-center justify-between">
-                    <h3 className="font-bold text-gray-900">이미지 미리보기</h3>
-                    <span className="rounded bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">PNG</span>
-                  </div>
-                  <PosterCard poster={posterGallery[0]} compact />
-                </section>
-              )}
+  {resultTab === 'text' ? (
+    <>
+      <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+        <FileText className="h-4 w-4 text-blue-600" />
+        교육 안내 문구
+      </p>
+      <pre className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+        {educationCopy}
+      </pre>
+
+      <button
+        type="button"
+        onClick={() =>
+          downloadText(
+            '금융소비자보호법_교육_안내_문구.txt',
+            educationCopy
+          )
+        }
+        disabled={selectedChanges.length === 0}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Download className="h-4 w-4" />
+        결과 다운로드
+      </button>
+    </>
+  ) : (
+    <>
+      {posterGallery[0] ? (
+        <>
+          <div className="mb-3 flex items-center justify-between">
+            <p className="font-bold text-gray-900">이미지 미리보기</p>
+            <span className="rounded bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
+              PNG
+            </span>
+          </div>
+
+          <div className="mx-auto max-w-[260px]">
+            <PosterCard poster={posterGallery[0]} compact />
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              downloadText(
+                `${posterGallery[0].title}_포스터_문구.txt`,
+                [
+                  `[${posterGallery[0].tag}] ${posterGallery[0].title}`,
+                  posterGallery[0].subtitle,
+                  ...posterGallery[0].bullets,
+                  posterGallery[0].footer,
+                ].join('\n')
+              )
+            }
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-2.5 text-sm font-medium text-white hover:shadow-md"
+          >
+            <Download className="h-4 w-4" />
+            이미지 다운로드
+          </button>
+        </>
+      ) : (
+        <div className="rounded-lg border border-dashed border-gray-300 bg-white/60 px-4 py-10 text-center text-sm text-gray-500">
+          요청 후 이미지 미리보기가 표시됩니다.
+        </div>
+      )}
+    </>
+  )}
+</div>
+              </section>
             </aside>
           </div>
         </>
       ) : (
         <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-          <div className="mb-6 flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">포스터 갤러리</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                선택한 교육 포인트를 기반으로 만들어진 이미지를 갤러리 형태로 확인합니다.
-              </p>
-            </div>
-            <span className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700">
-              {posterGallery.length}개 포스터
-            </span>
-          </div>
+  <div className="mb-6 flex items-start justify-between gap-4">
+    <div>
+      <h2 className="text-2xl font-bold text-gray-900">작업 이력</h2>
+      <p className="mt-1 text-sm text-gray-600">
+        교육 자료 제작으로 생성된 결과물을 확인합니다.
+      </p>
+    </div>
+    <span className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700">
+      {historyItems.length}개 작업
+    </span>
+  </div>
 
-          {posterGallery.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-gray-300 bg-white/60 px-6 py-12 text-center text-gray-500">
-              제작하기 탭에서 파일 업로드 후 요청하면 포스터 이미지가 표시됩니다.
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-5">
-              {posterGallery.map((poster) => (
-                <div key={poster.id} className="rounded-lg border border-gray-200/70 bg-white p-3 shadow-sm">
-                  <PosterCard poster={poster} />
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">{poster.title}</p>
-                      <p className="text-xs text-gray-500">{poster.tag}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        downloadText(
-                          `${poster.title}_포스터_문구.txt`,
-                          [`[${poster.tag}] ${poster.title}`, poster.subtitle, ...poster.bullets, poster.footer].join('\n')
-                        )
-                      }
-                      className="flex shrink-0 items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      다운로드
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+  {historyItems.length === 0 ? (
+  <div className="rounded-lg border border-dashed border-gray-300 bg-white/60 px-6 py-12 text-center text-gray-500">
+    아직 생성된 교육 자료가 없습니다.
+  </div>
+) : (
+  <div className="space-y-3">
+    {historyItems.map((item) => (
+      <div
+        key={item.id}
+        className="rounded-lg border border-gray-200 bg-white p-4"
+      >
+        <h4 className="font-semibold text-gray-900">
+          {item.title}
+        </h4>
+
+        <p className="mt-2 text-sm text-gray-600">
+          요청 내용: {item.requestText}
+        </p>
+
+        <p className="mt-1 text-sm text-blue-600">
+          생성 결과: {item.resultSummary}
+        </p>
+
+        <p className="mt-2 text-xs text-gray-500">
+          {item.createdAt}
+        </p>
+      </div>
+    ))}
+  </div>
+)}
+
+ </section>
       )}
+
+      {selectedHistory && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 px-6 py-8 backdrop-blur-sm"
+    onClick={() => setSelectedHistory(null)}
+  >
+    <div
+      className="max-h-full w-full max-w-3xl overflow-y-auto rounded-lg border border-white/70 bg-white p-6 shadow-2xl"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">
+            {selectedHistory.title}
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {selectedHistory.createdAt} · {selectedHistory.fileName}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSelectedHistory(null)}
+          className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100"
+        >
+          닫기
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <section className="rounded-lg bg-gray-50 p-4">
+          <p className="mb-2 text-sm font-semibold text-gray-900">요청 내용</p>
+          <p className="text-sm leading-6 text-gray-700">
+            {selectedHistory.requestText}
+          </p>
+        </section>
+
+        <section className="rounded-lg bg-blue-50 p-4">
+          <p className="mb-2 text-sm font-semibold text-blue-900">생성 결과</p>
+          <p className="text-sm leading-6 text-blue-800">
+            {selectedHistory.resultSummary}
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-gray-200 p-4">
+          <p className="mb-2 text-sm font-semibold text-gray-900">상세 내용</p>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>검토 포인트 3개가 교육 자료에 반영되었습니다.</li>
+            <li>교육 안내 문구가 생성되었습니다.</li>
+            <li>포스터 이미지 미리보기가 생성되었습니다.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

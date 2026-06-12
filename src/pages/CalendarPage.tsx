@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, X, Building2 } from 'lucide-react'
+import { Building2, Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCalendar, type EventType } from '../context/CalendarContext'
 
 const CATEGORY_COLOR_MAP: Record<string, string> = {
@@ -30,12 +30,13 @@ const emptyForm = {
 }
 
 export function CalendarPage() {
-  const { events, addEvent } = useCalendar()
+  const { events, addEvent, updateEvent, deleteEvent } = useCalendar()
 
   const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 8))
   const [selectedDate, setSelectedDate] = useState(TODAY)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(emptyForm)
+  const [editingEventId, setEditingEventId] = useState<number | null>(null)
 
   const daysInMonth = new Date(
     currentDate.getFullYear(),
@@ -82,10 +83,51 @@ export function CalendarPage() {
     })
   }
 
-  const handleAddEvent = () => {
+  const resetModal = () => {
+    setShowModal(false)
+    setEditingEventId(null)
+    setForm(emptyForm)
+  }
+
+  const getFormFromEvent = (event: EventType) => {
+    const [timeStart = '', timeEnd = ''] =
+      event.time === '시간 미정' ? [] : event.time.split(' - ')
+
+    return {
+      title: event.title,
+      date: event.date,
+      endDate: event.endDate,
+      timeStart,
+      timeEnd,
+      location: event.location === '장소 미정' ? '' : event.location,
+      department: event.department === '미지정' ? '' : event.department,
+      category: event.category,
+      memo: event.memo,
+    }
+  }
+
+  const openAddModal = () => {
+    setEditingEventId(null)
+    setForm({ ...emptyForm, date: selectedDate, endDate: selectedDate })
+    setShowModal(true)
+  }
+
+  const openEditModal = (event: EventType) => {
+    setEditingEventId(event.id)
+    setForm(getFormFromEvent(event))
+    setShowModal(true)
+  }
+
+  const handleDeleteEvent = (event: EventType) => {
+    if (!window.confirm(`'${event.title}' 일정을 삭제할까요?`)) return
+
+    deleteEvent(event.id)
+  }
+
+  const handleSaveEvent = () => {
     if (!form.title || !form.date) return
 
-    addEvent({
+    const eventPayload = {
       title: form.title,
       date: form.date,
       endDate: form.endDate || form.date,
@@ -98,11 +140,16 @@ export function CalendarPage() {
       category: form.category,
       memo: form.memo,
       color: CATEGORY_COLOR_MAP[form.category] ?? CATEGORY_COLOR_MAP['기타'],
-    })
+    }
+
+    if (editingEventId === null) {
+      addEvent(eventPayload)
+    } else {
+      updateEvent(editingEventId, eventPayload)
+    }
 
     setSelectedDate(form.date)
-    setShowModal(false)
-    setForm(emptyForm)
+    resetModal()
   }
 
   return (
@@ -114,10 +161,7 @@ export function CalendarPage() {
         </div>
 
         <button
-          onClick={() => {
-            setForm({ ...emptyForm, date: selectedDate, endDate: selectedDate })
-            setShowModal(true)
-          }}
+          onClick={openAddModal}
           className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg"
         >
           <Plus className="h-5 w-5" />
@@ -262,7 +306,14 @@ export function CalendarPage() {
             </h3>
 
             {selectedEvents.length > 0 ? (
-              selectedEvents.map(event => <EventCard key={event.id} event={event} />)
+              selectedEvents.map(event => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onEdit={openEditModal}
+                  onDelete={handleDeleteEvent}
+                />
+              ))
             ) : (
               <p className="text-sm text-gray-400">일정이 없습니다.</p>
             )}
@@ -274,7 +325,13 @@ export function CalendarPage() {
             <div className="space-y-3">
               {upcomingEvents.length > 0 ? (
                 upcomingEvents.map(event => (
-                  <EventCard key={event.id} event={event} compact />
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    compact
+                    onEdit={openEditModal}
+                    onDelete={handleDeleteEvent}
+                  />
                 ))
               ) : (
                 <p className="text-sm text-gray-400">예정된 일정이 없습니다.</p>
@@ -288,10 +345,12 @@ export function CalendarPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900">새 일정 추가</h3>
+              <h3 className="text-lg font-bold text-gray-900">
+                {editingEventId === null ? '새 일정 추가' : '일정 수정'}
+              </h3>
 
               <button
-                onClick={() => setShowModal(false)}
+                onClick={resetModal}
                 className="rounded-lg p-1.5 hover:bg-gray-100"
               >
                 <X className="h-5 w-5 text-gray-500" />
@@ -440,7 +499,7 @@ export function CalendarPage() {
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={resetModal}
                 className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 취소
@@ -448,11 +507,11 @@ export function CalendarPage() {
 
               <button
                 type="button"
-                onClick={handleAddEvent}
+                onClick={handleSaveEvent}
                 disabled={!form.title || !form.date}
                 className="flex-1 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 py-2.5 text-sm font-medium text-white hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
               >
-                추가
+                {editingEventId === null ? '추가' : '저장'}
               </button>
             </div>
           </div>
@@ -462,7 +521,17 @@ export function CalendarPage() {
   )
 }
 
-function EventCard({ event, compact = false }: { event: EventType; compact?: boolean }) {
+function EventCard({
+  event,
+  compact = false,
+  onEdit,
+  onDelete,
+}: {
+  event: EventType
+  compact?: boolean
+  onEdit: (event: EventType) => void
+  onDelete: (event: EventType) => void
+}) {
   const isMultiDay = event.date !== event.endDate
   const eventColor = CATEGORY_COLOR_MAP[event.category] ?? CATEGORY_COLOR_MAP['기타']
 
@@ -483,12 +552,40 @@ function EventCard({ event, compact = false }: { event: EventType; compact?: boo
         )}
 
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
+          <div className="mb-1 flex items-start justify-between gap-2">
             <span
               className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${eventColor}`}
             >
               {event.category}
             </span>
+
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(event)
+                }}
+                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                aria-label={`${event.title} 수정`}
+                title="수정"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(event)
+                }}
+                className="rounded-md p-1 text-gray-400 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                aria-label={`${event.title} 삭제`}
+                title="삭제"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
 
           <h4 className="mb-1 truncate text-sm font-bold text-gray-900">

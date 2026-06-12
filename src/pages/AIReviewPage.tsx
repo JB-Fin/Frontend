@@ -1,6 +1,7 @@
 import { fileApi } from '../services/fileApi';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { reviewApi } from '../services/reviewApi';
+import { useNotifications } from '../context/NotificationContext';
 import type { ChangeEvent, DragEvent, MouseEvent } from 'react';
 import { AlertCircle, CheckCircle2, Clock, Download, FileText, Loader2, Search, Upload, X } from 'lucide-react';
 
@@ -251,6 +252,7 @@ function highlightSentence(text: string, sentences: string | string[]) {
 
 export function AIReviewPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { addNotification } = useNotifications();
 
   const [dragActive, setDragActive] = useState(false);
   const [works, setWorks] = useState<ReviewWork[]>(() => {
@@ -303,6 +305,18 @@ export function AIReviewPage() {
       console.warn('최근 검토 내역을 저장하지 못했습니다.', error);
     }
   }, [works]);
+
+  const handleDeleteReview = (reviewId: number) => {
+  const confirmed = window.confirm('이 검토 내역을 삭제하시겠습니까?');
+
+  if (!confirmed) return;
+
+  setWorks((current) => current.filter((work) => work.id !== reviewId));
+
+  if (selectedWork?.id === reviewId) {
+    setSelectedWork(null);
+  }
+};
 
   const addFiles = async (files: FileList | File[]) => {
     const selectedFiles = Array.from(files);
@@ -451,6 +465,11 @@ export function AIReviewPage() {
 
       setWorks((current) => [newWork, ...current]);
       saveReportMockFile(newWork);
+      addNotification({
+        title: 'AI 검토 보고서 생성',
+        desc: `${buildDerivedFileName(uploadedFile.fileName, '검토보고서')}가 라이브러리에 저장되었습니다.`,
+        type: 'review',
+      });
       setUploadedFile(null);
     } catch (error) {
       console.error('검토 요청 실패', error);
@@ -577,9 +596,10 @@ export function AIReviewPage() {
           <div className="grid grid-cols-2 gap-4">
             {sortedWorks.map((work, index) => (
               <ReviewWorkCard
-                key={getReviewWorkKey(work, index)}
-                work={work}
-                onSelect={setSelectedWork}
+              key={getReviewWorkKey(work, index)}
+              work={work}
+              onSelect={setSelectedWork}
+              onDelete={handleDeleteReview}
               />
             ))}
           </div>
@@ -596,9 +616,11 @@ export function AIReviewPage() {
 function ReviewWorkCard({
   work,
   onSelect,
+  onDelete,
 }: {
   work: ReviewWork;
   onSelect: (work: ReviewWork) => void;
+  onDelete: (id: number) => void;
 }) {
   const status = statusConfig[work.status] ?? statusConfig['in-progress'];
   const StatusIcon = status.icon;
@@ -636,6 +658,16 @@ function ReviewWorkCard({
           <h4 className="truncate font-bold text-gray-900">{work.title}</h4>
           <p className="mt-1 text-xs text-gray-500">{work.fileName}</p>
         </div>
+        <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(work.id);
+        }}
+        className="rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
+        >
+          삭제
+          </button>
         <span
           className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium ${status.className}`}
         >
