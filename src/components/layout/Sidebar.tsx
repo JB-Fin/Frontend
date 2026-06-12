@@ -12,7 +12,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: SidebarProps) {
   return (
     <aside
-      className={`fixed bottom-0 left-0 top-0 z-40 flex flex-col border-r border-white/60 bg-white/85 shadow-lg backdrop-blur-xl transition-[width] duration-300 ${
+      className={`fixed bottom-0 left-0 top-0 z-40 flex flex-col border-r border-white/15 bg-gradient-to-b from-[#082064] via-[#0b3f9e] to-[#071452] shadow-2xl shadow-blue-950/25 backdrop-blur-xl transition-[width] duration-300 ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
@@ -21,22 +21,24 @@ export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: Sideba
         onClick={onToggle}
         aria-label={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
         title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
-        className={`absolute right-3 top-4 z-10 rounded-lg border border-gray-200/70 bg-white p-2 text-gray-600 shadow-sm transition-colors hover:bg-blue-50 hover:text-blue-700 ${
+        className={`absolute right-3 top-4 z-10 rounded-lg border border-white/20 bg-white/12 p-2 text-white shadow-sm backdrop-blur transition-colors hover:bg-white/20 ${
           collapsed ? 'hidden' : ''
         }`}
       >
         {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
       </button>
 
-      <div className={`border-b border-gray-200/50 py-5 ${collapsed ? 'px-4' : 'px-6'}`}>
+      <div className={`border-b border-white/15 py-5 ${collapsed ? 'px-4' : 'px-6'}`}>
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 pr-10'}`}>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md">
-            <span className="text-sm font-bold text-white">JB</span>
-          </div>
+          <img
+            src="/jb-symbol-mark.jpg"
+            alt="JB금융그룹"
+            className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-md shadow-cyan-950/30"
+          />
           {!collapsed && (
             <div className="min-w-0">
-              <h1 className="truncate font-bold text-gray-900">JB금융그룹</h1>
-              <p className="truncate text-xs text-gray-600">컴플라이언스 AI</p>
+              <h1 className="truncate font-bold text-white">JB금융그룹</h1>
+              <p className="truncate text-xs text-sky-100/80">Compliance AI</p>
             </div>
           )}
         </div>
@@ -45,7 +47,7 @@ export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: Sideba
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {navigationItems.map((item) => {
           if ('type' in item) {
-            return <div key={item.id} className="my-3 border-t border-gray-200/50" />;
+            return <div key={item.id} className="my-3 border-t border-white/15" />;
           }
 
           const Icon = item.icon;
@@ -64,8 +66,8 @@ export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: Sideba
                 collapsed ? 'justify-center px-0' : 'gap-3 px-4'
               } ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                  : 'text-gray-700 hover:bg-white/80 hover:shadow-sm'
+                  ? 'bg-gradient-to-r from-[#22c7f3] to-[#2f74ff] text-white shadow-md shadow-blue-950/25'
+                  : 'text-sky-100/85 hover:bg-white/12 hover:text-white hover:shadow-sm'
               }`}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -75,7 +77,7 @@ export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: Sideba
         })}
       </nav>
 
-      <div className="border-t border-gray-200/50 px-3 py-4">
+      <div className="border-t border-white/15 px-3 py-4">
         <button
           type="button"
           onClick={() => {
@@ -87,8 +89,8 @@ export function Sidebar({ collapsed, currentPage, onNavigate, onToggle }: Sideba
             collapsed ? 'justify-center px-0' : 'gap-3 px-4'
           } ${
             currentPage === 'settings'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-              : 'text-gray-700 hover:bg-white/80 hover:shadow-sm'
+              ? 'bg-gradient-to-r from-[#22c7f3] to-[#2f74ff] text-white shadow-md shadow-blue-950/25'
+              : 'text-sky-100/85 hover:bg-white/12 hover:text-white hover:shadow-sm'
           }`}
         >
           <Settings className="h-5 w-5 shrink-0" />

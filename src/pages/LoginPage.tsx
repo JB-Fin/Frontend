@@ -39,11 +39,11 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <div className="login-logo__icon">JB</div>
+          <img className="login-logo__icon" src="/jb-symbol-mark.jpg" alt="JB금융그룹" />
           <span className="login-logo__text">준또배기</span>
         </div>
 
-        <p className="login-subtitle">규정 기반 AI 컴플라이언스 어시스턴트</p>
+        <p className="login-subtitle">규정 기반 AI Compliance assistant</p>
 
         <label className="login-label" htmlFor="login-id">
           아이디

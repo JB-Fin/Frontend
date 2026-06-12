@@ -48,7 +48,7 @@ export default function PlatformLayout() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-slate-100">
         <Sidebar
           collapsed={sidebarCollapsed}
           currentPage={currentPage}
@@ -57,7 +57,7 @@ export default function PlatformLayout() {
         />
 
         <main className={`transition-[margin] duration-300 ${sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
-          <header className="sticky top-0 z-30 h-[104px] border-b border-white/20 bg-white/75 shadow-sm backdrop-blur-md">
+          <header className="sticky top-0 z-30 h-20 border-b border-slate-200/80 bg-gradient-to-r from-white via-sky-50 to-blue-50 shadow-sm shadow-blue-900/5">
             <div className="flex h-full items-center justify-end px-8">
               <div className="flex w-[400px] shrink-0 justify-end">
                 <TopBar />

@@ -19,7 +19,7 @@ const MOCK_ALARMS = [
   {
     id: '3',
     title: '일정 리마인더',
-    message: '오후 2시 컴플라이언스 회의 예정',
+    message: '오후 2시 Compliance 회의 예정',
     isRead: false,
     createdAt: '2026-06-09',
   },

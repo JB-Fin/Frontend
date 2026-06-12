@@ -45,10 +45,10 @@ export function TaskHistoryWidget() {
               key={file.id}
               type="button"
               onClick={() => navigate('/library')}
-              className="group w-full rounded-lg border border-gray-200/50 bg-white/90 p-3 text-left transition-all hover:border-blue-200 hover:shadow-md"
+              className="group flex min-h-[76px] w-full items-center rounded-lg border border-gray-200/60 bg-white/90 p-3 text-left transition-all hover:border-blue-200 hover:shadow-md"
             >
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 rounded-lg bg-blue-100 p-2">
+              <div className="flex w-full items-center gap-3">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
                   <Icon className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">

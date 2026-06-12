@@ -18,7 +18,7 @@ export function AddWidgetSidePanel({ isOpen, onClose, onAddWidget }: AddWidgetSi
         <div className="flex items-center justify-between border-b border-gray-200/50 bg-white/60 px-6 py-5">
           <div>
             <h2 className="mb-1 text-xl font-bold text-gray-900">위젯 추가</h2>
-            <p className="text-sm text-gray-700">대시보드에 추가할 위젯을 선택하세요.</p>
+            <p className="text-sm text-gray-700">홈에 추가할 위젯을 선택하세요.</p>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 transition-colors hover:bg-white/80">
             <X className="h-5 w-5 text-gray-700" />

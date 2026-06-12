@@ -6,6 +6,7 @@ import { AIChatWidget } from '../components/dashboard/widgets/AIChatWidget';
 import { AIReviewWidget } from '../components/dashboard/widgets/AIReviewWidget';
 import { CalendarWidget } from '../components/dashboard/widgets/CalendarWidget';
 import { EducationContentWidget } from '../components/dashboard/widgets/EducationContentWidget';
+import { MonthlyCalendarWidget } from '../components/dashboard/widgets/MonthlyCalendarWidget';
 import { NotificationWidget } from '../components/dashboard/widgets/NotificationWidget';
 import { TaskHistoryWidget } from '../components/dashboard/widgets/TaskHistoryWidget';
 import { defaultDashboardWidgets } from '../constants/dashboardWidgets';
@@ -26,6 +27,8 @@ function renderWidgetContent(type: WidgetType, title: string) {
       return <EducationContentWidget />;
     case 'calendar':
       return <CalendarWidget />;
+    case 'monthly-calendar':
+      return <MonthlyCalendarWidget />;
     case 'notification':
       return <NotificationWidget />;
     default:
@@ -92,25 +95,25 @@ export function DashboardPage() {
   return (
     <>
       {/* 1. 상단 안내 및 제어 바 */}
-      <div className="mb-6 flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="mb-5 flex min-h-[72px] items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
         <p className="text-sm text-gray-600">
-          위젯을 드래그해서 대시보드 레이아웃을 자유롭게 구성하세요.
+          위젯을 드래그해서 홈 레이아웃을 자유롭게 구성하세요.
         </p>
 
         <div className="flex gap-2">
           <button
             onClick={() => setShowAddPanel(true)}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition-all hover:bg-gray-50"
+            className="flex h-11 items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-4 text-sm font-semibold text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 text-blue-700" />
             위젯 추가
           </button>
 
           <button
             onClick={() => setWidgets(defaultDashboardWidgets)}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 shadow-sm transition-all hover:bg-gray-50"
+            className="flex h-11 items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-4 text-sm font-semibold text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-4 w-4 text-blue-700" />
             초기화
           </button>
         </div>
@@ -148,7 +151,7 @@ export function DashboardPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center text-gray-600 shadow-md">
             <Plus className="mx-auto mb-4 h-16 w-16 opacity-40 text-gray-400" />
             <p className="mb-4 text-lg font-medium text-gray-700">
-              위젯을 추가하여 대시보드를 구성하세요.
+              위젯을 추가하여 홈을 구성하세요.
             </p>
 
             <button

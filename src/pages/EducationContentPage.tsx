@@ -133,7 +133,7 @@ function buildPosterGallery(selected: LawChange[]): PosterDraft[] {
       `${change.audience} 대상 즉시 공유`,
       '상담 기록과 광고 심의 근거를 함께 보관',
     ],
-    footer: 'JB금융그룹 컴플라이언스 AI',
+    footer: 'JB금융그룹 Compliance AI',
     theme: posterThemes[index % posterThemes.length],
   }));
 }

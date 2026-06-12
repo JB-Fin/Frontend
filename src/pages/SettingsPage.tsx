@@ -105,8 +105,8 @@ function ProfileSettings() {
         {[
           ['이름', '김준법', 'text'],
           ['이메일', 'juntto@jbgroup.com', 'email'],
-          ['부서', '컴플라이언스팀', 'text'],
-          ['직책', '선임 컴플라이언스 매니저', 'text'],
+          ['부서', '법무팀', 'text'],
+          ['직책', '선임 Compliance 매니저', 'text'],
         ].map(([label, value, type]) => (
           <label key={label} className="block">
             <span className="mb-2 block text-sm font-medium text-gray-700">{label}</span>
