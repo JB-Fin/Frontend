@@ -104,7 +104,26 @@ function FileIcon({ ext }: { ext: string }) {
 }
 
 function isEducationPoster(file: LibraryFile) {
-  return file.type === 'education' && isImage(getFileExtension(file.name));
+  return file.type === 'education' && isLibraryImage(file);
+}
+
+function isLibraryImage(file: LibraryFile) {
+  return isImage(file.ext) || isImage(getFileExtension(file.name));
+}
+
+function getLibraryFileKey(file: Pick<LibraryFile, 'name' | 'type' | 'ext'>) {
+  return [file.type, file.name.trim().toLowerCase(), file.ext.toUpperCase()].join('|');
+}
+
+function uniqueLibraryFiles<T extends Pick<LibraryFile, 'name' | 'type' | 'ext'>>(files: T[]) {
+  const seen = new Set<string>();
+
+  return files.filter((file) => {
+    const key = getLibraryFileKey(file);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function PosterThumbnail({ file, compact = false }: { file: LibraryFile; compact?: boolean }) {
@@ -160,6 +179,12 @@ function readMockLibraryFiles(): LibraryFile[] {
       };
     });
 
+    const uniqueStoredFiles = uniqueLibraryFiles(storedFiles);
+
+    if (uniqueStoredFiles.length !== storedFiles.length) {
+      localStorage.setItem(libraryFilesStorageKey, JSON.stringify(uniqueStoredFiles));
+    }
+
     const reviewReportFiles: LibraryFile[] = reviewWorks.map((work: any, index: number) => {
       const sourceFileName = work.fileName ?? work.title ?? `AI검토_${index + 1}.txt`;
       const reportName = buildReportFileName(sourceFileName);
@@ -175,7 +200,7 @@ function readMockLibraryFiles(): LibraryFile[] {
     });
 
     const fallbackFiles: LibraryFile[] =
-      storedFiles.length === 0 && reviewReportFiles.length === 0
+      uniqueStoredFiles.length === 0 && reviewReportFiles.length === 0
         ? [
             {
               id: 'mock-review-report-ad-v2',
@@ -188,17 +213,11 @@ function readMockLibraryFiles(): LibraryFile[] {
           ]
         : [];
 
-    const mergedFiles = [...storedFiles, ...reviewReportFiles, ...fallbackFiles].filter(
+    const mergedFiles = [...uniqueStoredFiles, ...reviewReportFiles, ...fallbackFiles].filter(
       (file) => !(file.type === 'education' && file.ext === 'PPTX')
     );
-    const seen = new Set<string>();
 
-    return mergedFiles.filter((file) => {
-      const key = `${file.id}-${file.name}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return uniqueLibraryFiles(mergedFiles);
   } catch (error) {
     console.warn('라이브러리 임시 파일을 불러오지 못했습니다.', error);
     return [
@@ -242,7 +261,7 @@ export function TaskHistoryPage() {
           };
         });
 
-        setFiles([...mockFiles, ...mappedFiles]);
+        setFiles(uniqueLibraryFiles([...mockFiles, ...mappedFiles]));
       } catch (error) {
         console.error('파일 목록 조회 실패', error);
         setFiles(mockFiles);
@@ -264,7 +283,7 @@ export function TaskHistoryPage() {
         !keyword ||
         [file.name, file.ext, typeLabel[file.type]].join(' ').toLowerCase().includes(keyword);
 
-      const isImageFile = isImage(getFileExtension(file.name));
+      const isImageFile = isLibraryImage(file);
       const matchesTab =
         activeTab === 'all' ||
         (activeTab === 'images' ? isImageFile : !isImageFile);
@@ -273,50 +292,11 @@ export function TaskHistoryPage() {
     });
   }, [files, activeTab, search]);
 
-  const visibleFiles = filteredFiles.filter((file) => {
-    const isImageFile = isImage(getFileExtension(file.name));
-
-    if (activeTab === 'images') return isImageFile;
-    if (activeTab === 'files') return !isImageFile;
-
-    return true;
-  });
+  const visibleFiles = filteredFiles;
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">라이브러리</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              검토 결과, 원본 문서, 보고서, 교육 자료를 한곳에서 확인하세요.
-            </p>
-          </div>
-
-          <div className="flex rounded-lg border border-gray-200/60 bg-white/70 p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`rounded-md p-2 transition-colors ${
-                viewMode === 'list' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
-              }`}
-              aria-label="목록 보기"
-            >
-              <List className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`rounded-md p-2 transition-colors ${
-                viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
-              }`}
-              aria-label="그리드 보기"
-            >
-              <Grid className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
+      <section className="rounded-lg border border-white/60 bg-white/85 p-4 shadow-lg backdrop-blur-xl">
         <div className="flex items-center gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -324,7 +304,7 @@ export function TaskHistoryPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="파일명, 확장자, 유형 검색"
-              className="w-full rounded-lg border border-gray-200/60 bg-white/90 py-2.5 pl-9 pr-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+              className="w-full rounded-lg border border-gray-200/60 bg-white/90 py-2 pl-9 pr-3 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
             />
           </div>
 
@@ -334,15 +314,38 @@ export function TaskHistoryPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'border border-gray-200/60 bg-white/80 text-gray-700 hover:bg-white'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
+          </div>
+
+          <div className="flex rounded-lg border border-gray-200/60 bg-white/70 p-1 shadow-sm">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`rounded-md p-1.5 transition-colors ${
+                viewMode === 'list' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
+              }`}
+              aria-label="목록 보기"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`rounded-md p-1.5 transition-colors ${
+                viewMode === 'grid' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white'
+              }`}
+              aria-label="그리드 보기"
+            >
+              <Grid className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </section>

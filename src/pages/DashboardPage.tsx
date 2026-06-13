@@ -93,9 +93,9 @@ export function DashboardPage() {
   };
 
   return (
-    <>
+    <div className="flex h-[calc(100vh-128px)] flex-col gap-4 overflow-hidden">
       {/* 1. 상단 안내 및 제어 바 */}
-      <div className="mb-5 flex min-h-[72px] items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex h-16 flex-shrink-0 items-center justify-between rounded-lg border border-white/60 bg-white/85 px-4 py-3 shadow-lg backdrop-blur-xl">
         <p className="text-sm text-gray-600">
           위젯을 드래그해서 홈 레이아웃을 자유롭게 구성하세요.
         </p>
@@ -120,7 +120,7 @@ export function DashboardPage() {
       </div>
 
       {/* 2. 위젯 그리드 */}
-      <div className="grid grid-cols-4 gap-3 auto-rows-[80px]">
+      <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-[repeat(8,minmax(0,1fr))] gap-4">
         {[...widgets]
           .sort((a, b) => a.order - b.order)
           .map((widget, index) => (
@@ -170,6 +170,6 @@ export function DashboardPage() {
         onClose={() => setShowAddPanel(false)}
         onAddWidget={handleAddWidget}
       />
-    </>
+    </div>
   );
 }

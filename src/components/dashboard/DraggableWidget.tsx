@@ -103,7 +103,7 @@ export function DraggableWidget({
             >
               <GripVertical className="h-4 w-4 text-gray-700" />
             </div>
-            <h3 className="flex-1 truncate text-gray-900">{title}</h3>
+            <h3 className="flex-1 truncate text-base font-semibold text-gray-900">{title}</h3>
             <button className="flex-shrink-0 rounded p-1 transition-colors hover:bg-white/80" title="정보">
               <Info className="h-4 w-4 text-gray-700" />
             </button>

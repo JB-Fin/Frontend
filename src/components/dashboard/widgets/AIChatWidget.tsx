@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bot, Send, User } from 'lucide-react'
+import { suggestedQuestions } from '../../../constants/suggestedQuestions'
 import { useChatStore } from '../../../store/chatStore'
 
 function now() {
@@ -56,7 +57,7 @@ export function AIChatWidget() {
             <div
               className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
                 message.type === 'ai'
-                  ? 'bg-gradient-to-br from-blue-600 to-indigo-600'
+                  ? 'bg-blue-600'
                   : 'bg-gradient-to-br from-gray-600 to-gray-700'
               }`}
             >
@@ -72,7 +73,7 @@ export function AIChatWidget() {
                 className={`inline-block rounded-lg px-4 py-2 ${
                   message.type === 'ai'
                     ? 'border border-gray-200/50 bg-white/90 text-gray-800'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                    : 'bg-blue-600 text-white'
                 }`}
               >
                 <p className="whitespace-pre-wrap text-sm">{message.text}</p>
@@ -82,6 +83,21 @@ export function AIChatWidget() {
         ))}
         <div ref={bottomRef} />
       </div>
+
+      {messages.length === 1 && (
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          {suggestedQuestions.map((question) => (
+            <button
+              key={question}
+              type="button"
+              onClick={() => handleSend(question)}
+              className="min-h-[38px] rounded-lg border border-blue-100 bg-blue-50/80 px-3 py-2 text-center text-sm font-medium leading-5 text-blue-700 transition-colors hover:border-blue-200 hover:bg-blue-100"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex gap-2">
         <input
@@ -95,7 +111,7 @@ export function AIChatWidget() {
         <button
           type="button"
           onClick={() => handleSend()}
-          className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white transition-all hover:shadow-lg"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-white transition-all hover:bg-blue-700 hover:shadow-lg"
         >
           <Send className="h-4 w-4" />
         </button>

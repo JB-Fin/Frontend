@@ -422,19 +422,7 @@ export function EducationContentPage() {
 
       {activeTab === 'create' ? (
         <>
-          <section className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">교육 자료 제작</h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  금융소비자보호법 파일을 업로드하고 요청하면 교육 안내 문구와 포스터 이미지를 생성합니다.
-                </p>
-              </div>
-              <span className="rounded-lg bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700">
-                준법자문가 시나리오
-              </span>
-            </div>
-
+          <section className="rounded-lg border border-white/60 bg-white/85 p-4 shadow-lg backdrop-blur-xl">
             <input
               ref={fileInputRef}
               type="file"
@@ -447,25 +435,25 @@ export function EducationContentPage() {
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
-              className={`rounded-lg border-2 border-dashed p-8 transition-all ${
+              className={`rounded-lg border-2 border-dashed p-5 transition-all ${
                 dragActive
                   ? 'border-blue-500 bg-blue-50/80'
                   : 'border-gray-300 bg-white/60 hover:border-blue-400 hover:bg-blue-50/40'
               }`}
             >
-              <div className="flex items-center gap-5">
-                <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100">
-                  <Upload className="h-8 w-8 text-blue-600" />
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+                  <Upload className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-gray-900">금융소비자보호법 또는 교육 대상 법령 업로드</p>
+                  <p className="text-sm font-bold text-gray-900">교육 자료 업로드</p>
                   <p className="mt-1 text-sm text-gray-600">현재 분석 문서: {lawFileName}</p>
                   <p className="mt-1 text-xs text-gray-500">PDF, DOCX, TXT 형식의 법령/개정안/요약 문서를 넣어주세요.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-medium text-white hover:shadow-lg"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 hover:shadow-lg"
                 >
                   파일 선택
                 </button>

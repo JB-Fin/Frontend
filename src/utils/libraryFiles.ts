@@ -64,6 +64,21 @@ function buildReportFileName(filename: string) {
   return `${getFileBaseName(filename)}_검토보고서.txt`;
 }
 
+function getLibraryFileKey(file: Pick<LibraryFileItem, 'name' | 'type' | 'ext'>) {
+  return [file.type, file.name.trim().toLowerCase(), file.ext.toUpperCase()].join('|');
+}
+
+function uniqueLibraryFiles<T extends Pick<LibraryFileItem, 'name' | 'type' | 'ext'>>(files: T[]) {
+  const seen = new Set<string>();
+
+  return files.filter((file) => {
+    const key = getLibraryFileKey(file);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function readLibraryFiles(): LibraryFileItem[] {
   try {
     const savedFiles = localStorage.getItem(libraryFilesStorageKey);
@@ -91,6 +106,12 @@ export function readLibraryFiles(): LibraryFileItem[] {
       };
     });
 
+    const uniqueStoredFiles = uniqueLibraryFiles(storedFiles);
+
+    if (uniqueStoredFiles.length !== storedFiles.length) {
+      localStorage.setItem(libraryFilesStorageKey, JSON.stringify(uniqueStoredFiles));
+    }
+
     const reviewReportFiles: LibraryFileItem[] = reviewWorks.map((work: any, index: number) => {
       const sourceFileName = work.fileName ?? work.title ?? `AI검토_${index + 1}.txt`;
       const reportName = buildReportFileName(sourceFileName);
@@ -106,7 +127,7 @@ export function readLibraryFiles(): LibraryFileItem[] {
     });
 
     const fallbackFiles: LibraryFileItem[] =
-      storedFiles.length === 0 && reviewReportFiles.length === 0
+      uniqueStoredFiles.length === 0 && reviewReportFiles.length === 0
         ? [
             {
               id: 'sample-review-report-ad-v2',
@@ -119,17 +140,11 @@ export function readLibraryFiles(): LibraryFileItem[] {
           ]
         : [];
 
-    const mergedFiles = [...storedFiles, ...reviewReportFiles, ...fallbackFiles].filter(
+    const mergedFiles = [...uniqueStoredFiles, ...reviewReportFiles, ...fallbackFiles].filter(
       (file) => !(file.type === 'education' && file.ext === 'PPTX')
     );
-    const seen = new Set<string>();
 
-    return mergedFiles.filter((file) => {
-      const key = `${file.id}-${file.name}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return uniqueLibraryFiles(mergedFiles);
   } catch (error) {
     console.warn('라이브러리 임시 파일을 불러오지 못했습니다.', error);
     return [

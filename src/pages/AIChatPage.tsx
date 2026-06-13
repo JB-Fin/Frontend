@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Bot, MessageSquare, Pin, Plus, Search, Send, User } from 'lucide-react'
+import { suggestedQuestions } from '../constants/suggestedQuestions'
 import { chatApi } from '../services/chatApi'
 import { useChatStore } from '../store/chatStore';
 
@@ -18,13 +19,6 @@ type ChatSession = {
   createdAt: string
   updatedAt: string
 }
-
-const suggestedQuestions = [
-  '최근 금융소비자보호법 개정 내용은?',
-  '신규 대출 상품 출시 전 Compliance 체크리스트',
-  'AML 정기 평가 필수 항목',
-  '내부통제 시스템 운영 가이드라인',
-]
 
 function now() {
   return new Date().toLocaleTimeString('ko-KR', {
@@ -290,7 +284,7 @@ useEffect(() => {
   const recentSessions = filteredSessions.filter((session) => !session.pinned)
 
   return (
-    <div className="flex h-[calc(100vh-150px)] gap-6">
+    <div className="flex h-[calc(100vh-128px)] gap-6">
       <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-white/60 bg-white/85 shadow-lg backdrop-blur-xl">
         <div className="border-b border-gray-200/50 bg-white/60 px-6 py-4">
           <div className="flex items-center gap-3">
