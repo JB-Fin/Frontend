@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCalendar } from '../../../context/CalendarContext';
@@ -52,12 +52,6 @@ export function MonthlyCalendarWidget() {
     }, {});
   }, [events, month, year]);
 
-  const monthEventCount = events.filter((event) => {
-    const firstDate = getDateString(year, month, 1);
-    const lastDate = getDateString(year, month, new Date(year, month, 0).getDate());
-    return event.date <= lastDate && firstDate <= event.endDate;
-  }).length;
-
   const moveMonth = (offset: number) => {
     setVisibleMonth((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
     setSelectedDate(null);
@@ -65,17 +59,7 @@ export function MonthlyCalendarWidget() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="rounded-lg bg-gradient-to-br from-sky-100 to-blue-100 p-2.5">
-            <CalendarDays className="h-5 w-5 text-sky-600" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-medium text-gray-900">캘린더</h3>
-            <p className="text-xs text-gray-600">{monthEventCount}건 일정</p>
-          </div>
-        </div>
-
+      <div className="mb-2 flex items-center justify-end gap-2">
         <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"

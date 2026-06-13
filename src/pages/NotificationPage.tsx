@@ -1,15 +1,7 @@
 import { useState } from 'react';
-import {
-  Bell,
-  BookOpen,
-  CheckCircle,
-  FileText,
-  Info,
-  Library,
-  ShieldCheck,
-  Trash2,
-} from 'lucide-react';
-import { useNotifications, type NotificationItem } from '../context/NotificationContext';
+import { Bell, Trash2 } from 'lucide-react';
+import { getNotificationStyle } from '../constants/notificationStyles';
+import { useNotifications } from '../context/NotificationContext';
 
 type Filter = 'all' | 'unread' | 'read';
 
@@ -18,53 +10,6 @@ const filters: { id: Filter; label: string }[] = [
   { id: 'unread', label: '안읽음' },
   { id: 'read', label: '읽음' },
 ];
-
-const notificationStyle: Record<
-  NotificationItem['type'],
-  {
-    icon: typeof Bell;
-    bg: string;
-    color: string;
-    border: string;
-    panel: string;
-  }
-> = {
-  update: {
-    icon: Info,
-    bg: 'bg-blue-100',
-    color: 'text-blue-700',
-    border: 'border-blue-200',
-    panel: 'from-blue-50 to-white',
-  },
-  review: {
-    icon: ShieldCheck,
-    bg: 'bg-emerald-100',
-    color: 'text-emerald-700',
-    border: 'border-emerald-200',
-    panel: 'from-emerald-50 to-white',
-  },
-  approval: {
-    icon: CheckCircle,
-    bg: 'bg-purple-100',
-    color: 'text-purple-700',
-    border: 'border-purple-200',
-    panel: 'from-purple-50 to-white',
-  },
-  education: {
-    icon: BookOpen,
-    bg: 'bg-orange-100',
-    color: 'text-orange-700',
-    border: 'border-orange-200',
-    panel: 'from-orange-50 to-white',
-  },
-  library: {
-    icon: Library,
-    bg: 'bg-pink-100',
-    color: 'text-pink-700',
-    border: 'border-pink-200',
-    panel: 'from-pink-50 to-white',
-  },
-};
 
 export function NotificationPage() {
   const { notifications, deleteNotification, markAllAsRead, markAsRead } = useNotifications();
@@ -96,24 +41,24 @@ export function NotificationPage() {
             type="button"
             onClick={markAllAsRead}
             disabled={unreadCount === 0}
-            className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           >
             모두 읽음 처리
           </button>
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
-          <div className="rounded-lg bg-blue-50 p-4">
+          <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-4">
             <p className="text-xs font-medium text-blue-700">전체</p>
             <p className="mt-1 text-2xl font-bold text-blue-950">{notifications.length}</p>
           </div>
-          <div className="rounded-lg bg-red-50 p-4">
-            <p className="text-xs font-medium text-red-700">안읽음</p>
+          <div className="rounded-lg border border-red-100 bg-red-50/40 p-4">
+            <p className="text-xs font-medium text-red-600">안읽음</p>
             <p className="mt-1 text-2xl font-bold text-red-950">{unreadCount}</p>
           </div>
-          <div className="rounded-lg bg-emerald-50 p-4">
-            <p className="text-xs font-medium text-emerald-700">읽음</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-950">{readCount}</p>
+          <div className="rounded-lg border border-green-100 bg-green-50/40 p-4">
+            <p className="text-xs font-medium text-green-700">읽음</p>
+            <p className="mt-1 text-2xl font-bold text-green-950">{readCount}</p>
           </div>
         </div>
       </section>
@@ -126,7 +71,7 @@ export function NotificationPage() {
             onClick={() => setFilter(item.id)}
             className={`rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
               filter === item.id
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                ? 'bg-blue-600 text-white shadow-md'
                 : 'border border-gray-200 bg-white text-gray-700 hover:bg-blue-50'
             }`}
           >
@@ -142,8 +87,8 @@ export function NotificationPage() {
           </div>
         ) : (
           filtered.map((notification) => {
-            const style = notificationStyle[notification.type] ?? notificationStyle.update;
-            const Icon = style.icon ?? FileText;
+            const style = getNotificationStyle(notification.type);
+            const Icon = style.icon;
 
             return (
               <div
@@ -157,23 +102,28 @@ export function NotificationPage() {
                     markAsRead(notification.id);
                   }
                 }}
-                className={`w-full rounded-lg border p-5 text-left shadow-sm transition-all hover:shadow-md ${
+                className={`relative w-full overflow-hidden rounded-lg border bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
                   notification.isRead
-                    ? 'border-gray-200 bg-white'
-                    : `${style.border} bg-gradient-to-r ${style.panel}`
+                    ? 'border-green-100 ring-1 ring-green-50/70'
+                    : 'border-red-100 ring-1 ring-red-50/70'
                 }`}
               >
+                <span
+                  className={`absolute inset-y-0 left-0 w-1 ${
+                    notification.isRead ? 'bg-green-300' : 'bg-red-300'
+                  }`}
+                />
                 <div className="flex items-start gap-4">
-                  <div className={`rounded-lg p-3 ${style.bg}`}>
-                    <Icon className={`h-5 w-5 ${style.color}`} />
+                  <div className={`rounded-lg p-3 ${style.iconBg}`}>
+                    <Icon className={`h-5 w-5 ${style.iconColor}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex items-center gap-2">
                       <span
                         className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          notification.isRead
-                            ? 'bg-gray-100 text-gray-500'
-                            : 'bg-blue-600 text-white'
+                        notification.isRead
+                            ? 'bg-green-50/70 text-green-700'
+                            : 'bg-red-50/70 text-red-600'
                         }`}
                       >
                         {notification.isRead ? '읽음' : '안읽음'}
@@ -190,9 +140,11 @@ export function NotificationPage() {
                     <p className="mt-1 text-sm text-gray-600">{notification.desc}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    {!notification.isRead && (
-                      <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                    )}
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        notification.isRead ? 'bg-green-400' : 'bg-red-400'
+                      }`}
+                    />
                     <button
                       type="button"
                       onClick={(event) => {

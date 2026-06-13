@@ -153,30 +153,15 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">캘린더</h2>
-          <p className="text-gray-600">Compliance 일정 및 이벤트 관리</p>
-        </div>
-
-        <button
-          onClick={openAddModal}
-          className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 font-medium text-white transition-all hover:shadow-lg"
-        >
-          <Plus className="h-5 w-5" />
-          일정 추가
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
-          <div className="mb-6 flex items-center justify-between">
+    <div className="h-[calc(100vh-128px)] overflow-hidden">
+      <div className="grid h-full grid-cols-3 items-stretch gap-6">
+        <div className="col-span-2 flex min-h-0 flex-col rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+          <div className="mb-4 flex shrink-0 items-center justify-between">
             <h3 className="text-xl font-bold text-gray-900">
               {currentDate.getFullYear()}년 {monthNames[currentDate.getMonth()]}
             </h3>
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() =>
                   setCurrentDate(
@@ -208,10 +193,18 @@ export function CalendarPage() {
               >
                 <ChevronRight className="h-5 w-5 text-gray-600" />
               </button>
+
+              <button
+                onClick={openAddModal}
+                className="ml-2 flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-medium text-white transition-all hover:shadow-md"
+              >
+                <Plus className="h-4 w-4" />
+                일정 추가
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid shrink-0 grid-cols-7 gap-2">
             {dayNames.map((day, index) => (
               <div
                 key={day}
@@ -226,9 +219,11 @@ export function CalendarPage() {
                 {day}
               </div>
             ))}
+          </div>
 
+          <div className="mt-2 grid min-h-0 flex-1 grid-cols-7 auto-rows-fr gap-2 overflow-hidden">
             {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-28" />
+              <div key={`empty-${i}`} className="min-h-0 rounded-lg bg-white/30" />
             ))}
 
             {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -242,7 +237,7 @@ export function CalendarPage() {
                 <div
                   key={day}
                   onClick={() => setSelectedDate(dateStr)}
-                  className={`h-28 cursor-pointer rounded-lg border p-2 transition-all ${
+                  className={`min-h-0 cursor-pointer overflow-hidden rounded-lg border p-2 transition-all ${
                     isToday
                       ? 'border-blue-700 bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md'
                       : isSelected
@@ -288,7 +283,7 @@ export function CalendarPage() {
             })}
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-gray-200/50 pt-6 text-sm">
+          <div className="mt-4 flex shrink-0 flex-wrap items-center gap-3 border-t border-gray-200/50 pt-4 text-xs">
             {CATEGORIES.map(cat => (
               <div key={cat} className="flex items-center gap-2">
                 <div className={`${CATEGORY_COLOR_MAP[cat]} h-3 w-3 rounded-full`} />
@@ -298,31 +293,33 @@ export function CalendarPage() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+        <div className="grid h-full min-h-0 grid-rows-2 gap-6">
+          <div className="flex min-h-0 flex-col rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
             <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
               <Calendar className="h-5 w-5 text-indigo-600" />
               {selectedDate === TODAY ? '오늘의 일정' : `${selectedDate.replace(/-/g, '.')} 일정`}
             </h3>
 
-            {selectedEvents.length > 0 ? (
-              selectedEvents.map(event => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteEvent}
-                />
-              ))
-            ) : (
-              <p className="text-sm text-gray-400">일정이 없습니다.</p>
-            )}
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+              {selectedEvents.length > 0 ? (
+                selectedEvents.map(event => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onEdit={openEditModal}
+                    onDelete={handleDeleteEvent}
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-gray-400">일정이 없습니다.</p>
+              )}
+            </div>
           </div>
 
-          <div className="rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
+          <div className="flex min-h-0 flex-col rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
             <h3 className="mb-4 font-bold text-gray-900">다가오는 일정</h3>
 
-            <div className="space-y-3">
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               {upcomingEvents.length > 0 ? (
                 upcomingEvents.map(event => (
                   <EventCard
@@ -602,24 +599,30 @@ function EventCard({
             </div>
           )}
 
-          <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-600">
-            <Clock className="h-3 w-3" />
-            <span>{compact ? event.time.split(' - ')[0] : event.time}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            {compact ? (
-              <>
+          {compact ? (
+            <div className="flex min-w-0 items-center gap-3 text-xs text-gray-600">
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Clock className="h-3 w-3" />
+                <span>{event.time.split(' - ')[0]}</span>
+              </div>
+              <div className="flex min-w-0 items-center gap-1.5">
                 <Building2 className="h-3 w-3" />
-                <span>{event.department}</span>
-              </>
-            ) : (
-              <>
+                <span className="truncate">{event.department}</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mb-1 flex items-center gap-1.5 text-xs text-gray-600">
+                <Clock className="h-3 w-3" />
+                <span>{event.time}</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
                 <MapPin className="h-3 w-3" />
                 <span>{event.location}</span>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
 
           {!compact && event.memo && (
             <p className="mt-2 rounded-md bg-gray-50 px-2 py-1.5 text-xs leading-relaxed text-gray-500">

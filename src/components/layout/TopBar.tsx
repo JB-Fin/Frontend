@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, Globe, LogOut, Trash2, User } from 'lucide-react';
+import { getNotificationStyle } from '../../constants/notificationStyles';
 import { translateLabel, useLanguage, type AppLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { authApi } from '../../services/authApi';
@@ -48,7 +49,7 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('language')}
-          className="flex h-11 w-36 items-center justify-between gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
+          className="flex h-11 w-36 items-center justify-between gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:bg-blue-50"
         >
           <Globe className="h-4 w-4 text-blue-700" />
           <span className="text-sm font-semibold text-[#082064]">{currentLanguageLabel}</span>
@@ -79,7 +80,7 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('notifications')}
-          className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
+          className="relative flex h-11 w-11 items-center justify-center rounded-lg border border-blue-200 bg-white text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:bg-blue-50"
           aria-label={t('알림')}
         >
           <Bell className="h-5 w-5 text-blue-700" />
@@ -99,7 +100,11 @@ export function TopBar() {
                 </h3>
               </div>
               <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notification) => (
+                {notifications.map((notification) => {
+                  const style = getNotificationStyle(notification.type);
+                  const Icon = style.icon;
+
+                  return (
                   <div
                     key={notification.id}
                     role="button"
@@ -111,17 +116,27 @@ export function TopBar() {
                         markAsRead(notification.id);
                       }
                     }}
-                    className={`w-full border-b border-gray-100/50 px-4 py-3 text-left transition-colors hover:bg-blue-50/50 ${
-                      notification.isRead ? 'opacity-55' : 'bg-blue-50/30'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-sm text-gray-900">{t(notification.title)}</p>
+                      className="relative w-full overflow-hidden border-b border-gray-100/70 bg-white px-4 py-3 text-left transition-colors hover:bg-blue-50/40"
+                    >
+                      <span
+                        className={`absolute inset-y-0 left-0 w-1 ${
+                          notification.isRead ? 'bg-green-300' : 'bg-red-300'
+                        }`}
+                      />
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${style.iconBg}`}>
+                        <Icon className={`h-4 w-4 ${style.iconColor}`} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-gray-900">{t(notification.title)}</p>
                         <p className="mt-1 text-xs text-gray-600">{t(notification.time)}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        {!notification.isRead && <span className="h-2 w-2 rounded-full bg-blue-600" />}
+                          <span
+                            className={`h-2 w-2 rounded-full ${
+                              notification.isRead ? 'bg-green-400' : 'bg-red-400'
+                            }`}
+                          />
                         <button
                           type="button"
                           onClick={(event) => {
@@ -137,7 +152,8 @@ export function TopBar() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="border-t border-gray-200/50 px-4 py-2">
                 <button
@@ -157,7 +173,7 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('profile')}
-          className="flex h-11 w-48 items-center gap-2 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:from-sky-50 hover:to-blue-50"
+          className="flex h-11 w-48 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:bg-blue-50"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#082064] to-[#2f74ff] shadow-sm">
             <User className="h-4 w-4 text-white" />

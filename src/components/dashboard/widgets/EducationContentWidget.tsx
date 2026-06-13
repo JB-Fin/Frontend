@@ -41,11 +41,10 @@ export function EducationContentWidget() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
           <GraduationCap className="h-6 w-6 text-blue-600" />
         </div>
 
-        <h3 className="mb-1 text-base font-semibold text-gray-900">교육 자료 제작</h3>
         <p className="mb-3 text-sm leading-5 text-gray-600">홈에서 업로드하고 바로 제작 요청</p>
 
         {selectedFile ? (
@@ -63,7 +62,7 @@ export function EducationContentWidget() {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex-1 rounded-lg border border-blue-200 bg-gradient-to-r from-white to-sky-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:border-blue-300"
+            className="flex-1 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:border-blue-300 hover:bg-blue-50"
           >
             파일 선택
           </button>
@@ -72,7 +71,7 @@ export function EducationContentWidget() {
             type="button"
             onClick={handleGenerate}
             disabled={!selectedFile || isGenerating}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
             제작 요청
