@@ -6,6 +6,7 @@ import {
   readLibraryFiles,
   type LibraryFileItem,
 } from '../../../utils/libraryFiles';
+import { translateGeneratedFileName, useLanguage } from '../../../context/LanguageContext';
 
 function getIcon(file: LibraryFileItem) {
   if (isImageExtension(file.ext)) return Image;
@@ -28,6 +29,7 @@ const typeLabel = {
 
 export function TaskHistoryWidget() {
   const navigate = useNavigate();
+  const { currentLanguage } = useLanguage();
   const [files, setFiles] = useState<LibraryFileItem[]>([]);
 
   useEffect(() => {
@@ -52,8 +54,11 @@ export function TaskHistoryWidget() {
                   <Icon className="h-4 w-4 text-blue-600" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900 transition-colors group-hover:text-blue-600">
-                    {file.name}
+                  <p
+                    className="truncate text-sm font-medium text-gray-900 transition-colors group-hover:text-blue-600"
+                    data-no-translate="true"
+                  >
+                    {translateGeneratedFileName(file.name, currentLanguage)}
                   </p>
                   <p className="mt-1 text-xs text-gray-600">
                     {file.ext} · {file.size} · {file.updatedAt}

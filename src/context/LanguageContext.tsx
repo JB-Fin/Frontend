@@ -13,6 +13,7 @@ type LanguageContextValue = {
   currentLanguageLabel: string;
   languages: LanguageOption[];
   setLanguage: (language: AppLanguage) => void;
+  t: (text: string) => string;
 };
 
 const languages: LanguageOption[] = [
@@ -29,6 +30,26 @@ const vietnameseDictionary: Record<string, string> = {
   'JB금융그룹': 'Tập đoàn Tài chính JB',
   'Compliance AI': 'AI tuân thủ',
   '법무팀': 'Đội pháp vụ',
+  '계약검토': 'Rà soát hợp đồng',
+  '법령검토': 'Rà soát pháp lý',
+  '자문': 'Tư vấn',
+  '마감': 'Hạn chót',
+  '전자금융 약관 개정안 법무 검토': 'Rà soát pháp lý dự thảo sửa đổi điều khoản tài chính điện tử',
+  '대출상품 광고 문구 법률 자문': 'Tư vấn pháp lý nội dung quảng cáo sản phẩm vay',
+  '위탁계약서 표준조항 검토': 'Rà soát điều khoản mẫu của hợp đồng ủy thác',
+  '준법감시부 법무 이슈 주간회의': 'Họp tuần về vấn đề pháp vụ của bộ phận giám sát tuân thủ',
+  '내부통제위원회 안건 법률 검토': 'Rà soát pháp lý nội dung trình ủy ban kiểm soát nội bộ',
+  '금융당국 자료제출 법무 검토 마감': 'Hạn chót rà soát pháp lý tài liệu nộp cơ quan tài chính',
+  '민원 대응 법률 검토 교육': 'Đào tạo rà soát pháp lý về xử lý khiếu nại',
+  '전자금융거래법 개정사항 반영 여부 확인': 'Kiểm tra việc phản ánh sửa đổi của Luật giao dịch tài chính điện tử',
+  '금융소비자보호법상 오인 가능 표현 검토': 'Rà soát cách diễn đạt có thể gây hiểu nhầm theo Luật bảo vệ người tiêu dùng tài chính',
+  '개인정보 처리 위탁 조항 및 손해배상 조항 확인': 'Kiểm tra điều khoản ủy thác xử lý dữ liệu cá nhân và bồi thường thiệt hại',
+  '소송, 민원, 계약 검토 진행 현황 공유': 'Chia sẻ tiến độ kiện tụng, khiếu nại và rà soát hợp đồng',
+  '위원회 상정 전 법적 리스크 및 근거 조항 정리': 'Tổng hợp rủi ro pháp lý và căn cứ trước khi trình ủy ban',
+  '제출자료 문구, 개인정보 포함 여부 최종 확인': 'Xác nhận cuối nội dung tài liệu nộp và dữ liệu cá nhân kèm theo',
+  '반복 민원 사례와 답변 문구 작성 기준 공유': 'Chia sẻ ví dụ khiếu nại lặp lại và tiêu chuẩn soạn câu trả lời',
+  '본사 12층 법무팀 회의실': 'Phòng họp đội pháp vụ tầng 12 trụ sở chính',
+  '전자문서 제출': 'Nộp tài liệu điện tử',
   'Compliance 전문 AI': 'AI chuyên về tuân thủ',
   '플랫폼': 'Nền tảng',
 
@@ -67,6 +88,7 @@ const vietnameseDictionary: Record<string, string> = {
   '다운로드': 'Tải xuống',
   '검색': 'Tìm kiếm',
   '추가': 'Thêm',
+  '삭제': 'Xóa',
   '초기화': 'Đặt lại',
   '위젯 추가': 'Thêm tiện ích',
   '새로고침': 'Làm mới',
@@ -202,6 +224,9 @@ const vietnameseDictionary: Record<string, string> = {
   '예정': 'sắp tới',
   '예정된 일정 없음': 'Không có lịch sắp tới',
   '예정된 일정이 없습니다.': 'Không có lịch sắp tới.',
+  '전체 일정 보기': 'Xem tất cả lịch',
+  '이전 달': 'Tháng trước',
+  '다음 달': 'Tháng sau',
   'Compliance 일정 및 이벤트 관리': 'Quản lý lịch và sự kiện tuân thủ',
   '일정 추가': 'Thêm lịch',
   '오늘': 'Hôm nay',
@@ -243,6 +268,7 @@ const vietnameseDictionary: Record<string, string> = {
   '최근 수정': 'Cập nhật gần đây',
 
   '전체 알림 내역': 'Toàn bộ lịch sử thông báo',
+  '생성된 보고서와 교육 자료, 규정 업데이트를 확인하세요.': 'Kiểm tra báo cáo, tài liệu đào tạo và cập nhật quy định đã tạo.',
   '모두 읽음 처리': 'Đánh dấu tất cả là đã đọc',
   '안읽음': 'Chưa đọc',
   '모두 읽음': 'Tất cả đã đọc',
@@ -253,14 +279,21 @@ const vietnameseDictionary: Record<string, string> = {
   '읽음': 'Đã đọc',
   '읽지 않은 알림이 없습니다.': 'Không có thông báo chưa đọc.',
   '알림이 없습니다.': 'Không có thông báo.',
+  '표시할 알림이 없습니다.': 'Không có thông báo để hiển thị.',
   '최근 알림': 'Thông báo gần đây',
   '새 알림': 'Thông báo mới',
   '새 알림 없음': 'Không có thông báo mới',
   '모든 알림 보기': 'Xem tất cả thông báo',
+  '교육 자료 생성 완료': 'Tạo tài liệu đào tạo hoàn tất',
   '교육 포스터 생성 완료': 'Tạo poster đào tạo hoàn tất',
+  'AI 검토 보고서 생성': 'Tạo báo cáo đánh giá AI hoàn tất',
+  '신규 규정 업데이트': 'Cập nhật quy định mới',
   '광고시안_Ver2_검토보고서.txt가 라이브러리에 저장되었습니다.': '광고시안_Ver2_검토보고서.txt đã được lưu vào thư viện.',
   '금융소비자보호법_교육포스터.png가 라이브러리에 저장되었습니다.': '금융소비자보호법_교육포스터.png đã được lưu vào thư viện.',
   '금융소비자보호법_교육자료.pptx가 라이브러리에 저장되었습니다.': '금융소비자보호법_교육자료.pptx đã được lưu vào thư viện.',
+  '금융소비자보호법 교육 자료 제작에 반영할 항목이 있습니다.': 'Có nội dung cần phản ánh vào việc tạo tài liệu đào tạo về Luật bảo vệ người tiêu dùng tài chính.',
+  '1시간 전': '1 giờ trước',
+  '오늘 09:20': 'Hôm nay 09:20',
 
   '계정과 시스템 설정을 관리하세요.': 'Quản lý tài khoản và cài đặt hệ thống.',
   '준비 중인 설정 영역입니다.': 'Khu vực cài đặt đang được chuẩn bị.',
@@ -269,7 +302,8 @@ const vietnameseDictionary: Record<string, string> = {
   '이메일': 'Email',
   '부서': 'Bộ phận',
   '직책': 'Chức danh',
-  '선임 Compliance 매니저': 'Quản lý tuân thủ cấp cao',
+  '책임매니저': 'Quản lý phụ trách',
+  '법무 검토 권한': 'Quyền rà soát pháp lý',
   '이메일 알림': 'Thông báo email',
   '중요한 업데이트를 이메일로 받습니다.': 'Nhận các cập nhật quan trọng qua email.',
   '브라우저 알림': 'Thông báo trình duyệt',
@@ -359,6 +393,17 @@ const englishDictionary: Record<string, string> = {
   'JB금융그룹': 'JB Financial Group',
   'Compliance AI': 'Compliance AI',
   '법무팀': 'Legal Team',
+  '계약검토': 'Contract review',
+  '법령검토': 'Legal review',
+  '자문': 'Advisory',
+  '마감': 'Deadline',
+  '전자금융 약관 개정안 법무 검토': 'Legal review of e-finance terms amendment',
+  '대출상품 광고 문구 법률 자문': 'Legal advisory for loan product ad copy',
+  '위탁계약서 표준조항 검토': 'Review standard clauses in outsourcing contract',
+  '준법감시부 법무 이슈 주간회의': 'Weekly legal issue meeting for Compliance Office',
+  '내부통제위원회 안건 법률 검토': 'Legal review of Internal Control Committee agenda',
+  '금융당국 자료제출 법무 검토 마감': 'Deadline for legal review of regulator submission',
+  '민원 대응 법률 검토 교육': 'Legal review training for complaint response',
   'Compliance 전문 AI': 'Compliance AI specialist',
   '규정 기반 AI Compliance assistant': 'Rule-based Compliance AI assistant',
   '플랫폼': 'Platform',
@@ -508,7 +553,8 @@ const englishDictionary: Record<string, string> = {
   '이메일': 'Email',
   '부서': 'Department',
   '직책': 'Role',
-  '선임 Compliance 매니저': 'Senior Compliance Manager',
+  '책임매니저': 'Responsible Manager',
+  '법무 검토 권한': 'Legal review permission',
   '페이지를 찾을 수 없습니다': 'Page not found',
   '요청하신 주소가 존재하지 않습니다.': 'The requested address does not exist.',
   '홈으로 돌아가기': 'Back to Home',
@@ -752,6 +798,9 @@ const attributeOriginals = new WeakMap<Element, Map<string, string>>();
 const translatableAttributes = ['aria-label', 'title', 'placeholder'];
 
 function translateText(text: string, dictionary: Record<string, string>) {
+  const exactMatch = dictionary[text];
+  if (exactMatch) return exactMatch;
+
   return Object.entries(dictionary)
     .sort(([left], [right]) => right.length - left.length)
     .reduce((result, [source, target]) => result.split(source).join(target), text);
@@ -760,6 +809,18 @@ function translateText(text: string, dictionary: Record<string, string>) {
 export function translateLabel(text: string, language: AppLanguage) {
   const dictionary = languageDictionaries[language];
   return dictionary ? translateText(text, dictionary) : text;
+}
+
+export function translateGeneratedFileName(filename: string, language: AppLanguage) {
+  if (language !== 'vi') return filename;
+
+  return filename
+    .split('금융소비자보호법').join('Luật bảo vệ người tiêu dùng tài chính')
+    .split('광고시안').join('Bản thảo quảng cáo')
+    .split('고난도').join('độ khó cao')
+    .split('교육포스터').join('poster đào tạo')
+    .split('교육자료').join('tài liệu đào tạo')
+    .split('검토보고서').join('báo cáo đánh giá');
 }
 
 function shouldSkipElement(element: Element | null) {
@@ -867,6 +928,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       currentLanguageLabel: current.label,
       languages,
       setLanguage: setCurrentLanguage,
+      t: (text: string) => translateLabel(text, currentLanguage),
     };
   }, [currentLanguage]);
 

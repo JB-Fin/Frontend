@@ -1,41 +1,44 @@
 import { useState } from 'react'
 import { Building2, Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useCalendar, type EventType } from '../context/CalendarContext'
+import { parseDateParts } from '../utils/dateTime'
 
 const CATEGORY_COLOR_MAP: Record<string, string> = {
-  '세미나': 'bg-blue-100 text-blue-700',
-  '감사': 'bg-rose-100 text-rose-700',
-  '워크샵': 'bg-violet-100 text-violet-700',
-  '교육': 'bg-emerald-100 text-emerald-700',
+  '계약검토': 'bg-blue-100 text-blue-700',
+  '법령검토': 'bg-violet-100 text-violet-700',
+  '자문': 'bg-emerald-100 text-emerald-700',
   '회의': 'bg-amber-100 text-amber-700',
-  '점검': 'bg-orange-100 text-orange-700',
+  '마감': 'bg-rose-100 text-rose-700',
+  '교육': 'bg-green-100 text-green-700',
   '기타': 'bg-slate-100 text-slate-700',
 }
 
 const CATEGORIES = Object.keys(CATEGORY_COLOR_MAP)
 const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월']
 const dayNames = ['일', '월', '화', '수', '목', '금', '토']
-const TODAY = '2026-06-08'
 
-const emptyForm = {
+function createEmptyForm(today: string) {
+  return {
   title: '',
-  date: TODAY,
-  endDate: TODAY,
+  date: today,
+  endDate: today,
   timeStart: '',
   timeEnd: '',
   location: '',
   department: '',
-  category: '세미나',
+  category: '계약검토',
   memo: '',
+  }
 }
 
 export function CalendarPage() {
-  const { events, addEvent, updateEvent, deleteEvent } = useCalendar()
+  const { events, addEvent, updateEvent, deleteEvent, today } = useCalendar()
+  const todayParts = parseDateParts(today)
 
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 8))
-  const [selectedDate, setSelectedDate] = useState(TODAY)
+  const [currentDate, setCurrentDate] = useState(new Date(todayParts.year, todayParts.month - 1, todayParts.day))
+  const [selectedDate, setSelectedDate] = useState(today)
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(() => createEmptyForm(today))
   const [editingEventId, setEditingEventId] = useState<number | null>(null)
 
   const daysInMonth = new Date(
@@ -63,7 +66,7 @@ export function CalendarPage() {
   )
 
   const upcomingEvents = events
-    .filter(e => e.date > TODAY)
+    .filter(e => e.date > today)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5)
 
@@ -86,7 +89,7 @@ export function CalendarPage() {
   const resetModal = () => {
     setShowModal(false)
     setEditingEventId(null)
-    setForm(emptyForm)
+    setForm(createEmptyForm(today))
   }
 
   const getFormFromEvent = (event: EventType) => {
@@ -108,7 +111,7 @@ export function CalendarPage() {
 
   const openAddModal = () => {
     setEditingEventId(null)
-    setForm({ ...emptyForm, date: selectedDate, endDate: selectedDate })
+    setForm({ ...createEmptyForm(today), date: selectedDate, endDate: selectedDate })
     setShowModal(true)
   }
 
@@ -175,8 +178,8 @@ export function CalendarPage() {
 
               <button
                 onClick={() => {
-                  setCurrentDate(new Date(2026, 5, 8))
-                  setSelectedDate(TODAY)
+                  setCurrentDate(new Date(todayParts.year, todayParts.month - 1, todayParts.day))
+                  setSelectedDate(today)
                 }}
                 className="rounded-lg bg-blue-50/80 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-100/80"
               >
@@ -230,7 +233,7 @@ export function CalendarPage() {
               const day = index + 1
               const dayEvents = getEventsForDate(day)
               const dateStr = getDateStr(day)
-              const isToday = dateStr === TODAY
+              const isToday = dateStr === today
               const isSelected = dateStr === selectedDate && !isToday
 
               return (
@@ -297,7 +300,7 @@ export function CalendarPage() {
           <div className="flex min-h-0 flex-col rounded-lg border border-white/60 bg-white/85 p-6 shadow-lg backdrop-blur-xl">
             <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-900">
               <Calendar className="h-5 w-5 text-indigo-600" />
-              {selectedDate === TODAY ? '오늘의 일정' : `${selectedDate.replace(/-/g, '.')} 일정`}
+              {selectedDate === today ? '오늘의 일정' : `${selectedDate.replace(/-/g, '.')} 일정`}
             </h3>
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">

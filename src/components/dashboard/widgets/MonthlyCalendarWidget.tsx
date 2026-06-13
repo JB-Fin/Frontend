@@ -2,8 +2,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCalendar } from '../../../context/CalendarContext';
+import { useLanguage, type AppLanguage } from '../../../context/LanguageContext';
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+const weekDayLabels: Record<AppLanguage, string[]> = {
+  ko: ['일', '월', '화', '수', '목', '금', '토'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  vi: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+  my: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  km: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+};
 
 function parseDateParts(date: string) {
   const [year, month, day] = date.split('-').map(Number);
@@ -21,6 +29,7 @@ function getDateString(year: number, month: number, day: number) {
 export function MonthlyCalendarWidget() {
   const navigate = useNavigate();
   const { events, today } = useCalendar();
+  const { currentLanguage, t } = useLanguage();
   const todayParts = parseDateParts(today);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(todayParts.year, todayParts.month - 1, 1));
   const [selectedDate, setSelectedDate] = useState<string | null>(today);
@@ -65,7 +74,7 @@ export function MonthlyCalendarWidget() {
             type="button"
             onClick={() => moveMonth(-1)}
             className="rounded p-1 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
-            aria-label="이전 달"
+            aria-label={t('이전 달')}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -76,7 +85,7 @@ export function MonthlyCalendarWidget() {
             type="button"
             onClick={() => moveMonth(1)}
             className="rounded p-1 text-gray-500 transition-colors hover:bg-blue-50 hover:text-blue-700"
-            aria-label="다음 달"
+            aria-label={t('다음 달')}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -84,8 +93,8 @@ export function MonthlyCalendarWidget() {
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-gray-500">
-        {weekDays.map((weekDay) => (
-          <span key={weekDay}>{weekDay}</span>
+        {weekDays.map((weekDay, index) => (
+          <span key={weekDay}>{weekDayLabels[currentLanguage][index]}</span>
         ))}
       </div>
 
@@ -100,7 +109,7 @@ export function MonthlyCalendarWidget() {
           const isToday = isCurrentMonth && date === todayParts.day;
           const isSelected = selectedDate === dateString;
           const hasEvents = dayEvents.length > 0;
-          const eventTitles = dayEvents.map((event) => event.title).join(', ');
+          const eventTitles = dayEvents.map((event) => t(event.title)).join(', ');
 
           return (
             <button
@@ -134,7 +143,7 @@ export function MonthlyCalendarWidget() {
         onClick={() => navigate('/calendar')}
         className="mt-3 w-full py-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
       >
-        전체 일정 보기 →
+        {t('전체 일정 보기')} →
       </button>
     </div>
   );
