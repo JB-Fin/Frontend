@@ -22,6 +22,7 @@ type ChatSession = {
 
 function now() {
   return new Date().toLocaleTimeString('ko-KR', {
+    timeZone: 'Asia/Seoul',
     hour: '2-digit',
     minute: '2-digit',
   })

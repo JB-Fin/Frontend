@@ -2,10 +2,12 @@ import { Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getNotificationStyle } from '../../../constants/notificationStyles';
 import { useNotifications } from '../../../context/NotificationContext';
+import { useLanguage } from '../../../context/LanguageContext';
 
 export function NotificationWidget() {
   const navigate = useNavigate();
   const { notifications, deleteNotification, markAsRead } = useNotifications();
+  const { t } = useLanguage();
   const recent = notifications.slice(0, 4);
 
   return (
@@ -49,7 +51,7 @@ export function NotificationWidget() {
                         notification.isRead ? 'font-medium text-gray-700' : 'font-bold text-gray-950'
                       }`}
                     >
-                      {notification.title}
+                      {t(notification.title)}
                     </p>
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
@@ -58,7 +60,7 @@ export function NotificationWidget() {
                           : 'bg-red-50/70 text-red-600'
                       }`}
                     >
-                      {notification.isRead ? '읽음' : '안읽음'}
+                      {notification.isRead ? t('읽음') : t('안읽음')}
                     </span>
                     <button
                       type="button"
@@ -67,13 +69,13 @@ export function NotificationWidget() {
                         deleteNotification(notification.id);
                       }}
                       className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                      aria-label={`${notification.title} 삭제`}
-                      title="삭제"
+                      aria-label={`${t(notification.title)} ${t('삭제')}`}
+                      title={t('삭제')}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400">{notification.time}</p>
+                  <p className="text-xs text-gray-400">{t(notification.time)}</p>
                 </div>
               </div>
             </div>
@@ -85,7 +87,7 @@ export function NotificationWidget() {
         onClick={() => navigate('/notifications')}
         className="mt-3 w-full py-2 text-sm font-medium text-red-600 transition-colors hover:text-red-700"
       >
-        모든 알림 보기 →
+        {t('모든 알림 보기')} →
       </button>
     </div>
   );

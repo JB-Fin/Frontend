@@ -53,6 +53,7 @@ function formatLibraryDate(value?: string | null) {
   if (Number.isNaN(date.getTime())) return value;
 
   return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',

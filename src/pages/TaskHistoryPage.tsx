@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fileApi } from '../services/fileApi';
 import { FileText, Grid, Image, List, Search, X } from 'lucide-react';
+import { translateGeneratedFileName, useLanguage } from '../context/LanguageContext';
 
 type FileType = 'review' | 'original' | 'report' | 'education';
 type ViewMode = 'grid' | 'list';
@@ -81,6 +82,7 @@ function formatLibraryDate(value?: string | null) {
   if (Number.isNaN(date.getTime())) return value;
 
   return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
@@ -127,6 +129,13 @@ function uniqueLibraryFiles<T extends Pick<LibraryFile, 'name' | 'type' | 'ext'>
 }
 
 function PosterThumbnail({ file, compact = false }: { file: LibraryFile; compact?: boolean }) {
+  const { currentLanguage } = useLanguage();
+  const thumbnailTitle = translateGeneratedFileName(
+    file.thumbnailTitle ?? getFileBaseName(file.name),
+    currentLanguage
+  );
+  const thumbnailSubtitle = translateGeneratedFileName(file.thumbnailSubtitle ?? '교육 포스터', currentLanguage);
+
   return (
     <div
       className={`flex flex-col justify-between overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-slate-900 text-white shadow-sm ${
@@ -139,11 +148,11 @@ function PosterThumbnail({ file, compact = false }: { file: LibraryFile; compact
       </div>
       <div>
         <p className={compact ? 'line-clamp-2 text-[9px] font-black leading-tight' : 'line-clamp-2 text-lg font-black leading-tight'}>
-          {file.thumbnailTitle ?? getFileBaseName(file.name)}
+          {thumbnailTitle}
         </p>
         {!compact && (
           <p className="mt-2 line-clamp-1 text-xs text-blue-100">
-            {file.thumbnailSubtitle ?? '교육 포스터'}
+            {thumbnailSubtitle}
           </p>
         )}
       </div>
@@ -234,6 +243,7 @@ function readMockLibraryFiles(): LibraryFile[] {
 }
 
 export function TaskHistoryPage() {
+  const { currentLanguage } = useLanguage();
   const [files, setFiles] = useState<LibraryFile[]>([]);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -293,6 +303,7 @@ export function TaskHistoryPage() {
   }, [files, activeTab, search]);
 
   const visibleFiles = filteredFiles;
+  const getDisplayName = (file: LibraryFile) => translateGeneratedFileName(file.name, currentLanguage);
 
   return (
     <div className="space-y-6">
@@ -371,7 +382,9 @@ export function TaskHistoryPage() {
                     <FileIcon ext={file.ext} />
                   )}
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-gray-900">{file.name}</p>
+                    <p className="truncate font-semibold text-gray-900" data-no-translate="true">
+                      {getDisplayName(file)}
+                    </p>
                     <p className="mt-1 text-xs text-gray-500">
                       {file.ext} · {file.size} · {file.updatedAt}
                     </p>
@@ -409,7 +422,9 @@ export function TaskHistoryPage() {
                     {typeLabel[file.type]}
                   </span>
                 )}
-                <p className="truncate font-semibold text-gray-900">{file.name}</p>
+                <p className="truncate font-semibold text-gray-900" data-no-translate="true">
+                  {getDisplayName(file)}
+                </p>
                 <p className="mt-2 text-xs text-gray-500">
                   {file.ext} · {file.size}
                 </p>
@@ -437,7 +452,9 @@ export function TaskHistoryPage() {
                   <FileIcon ext={preview.ext} />
                 )}
                 <div className="min-w-0">
-                  <h3 className="truncate font-bold text-gray-900">{preview.name}</h3>
+                  <h3 className="truncate font-bold text-gray-900" data-no-translate="true">
+                    {getDisplayName(preview)}
+                  </h3>
                   <p className="mt-1 text-sm text-gray-500">
                     {preview.ext} · {preview.size}
                   </p>

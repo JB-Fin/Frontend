@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Bell, Trash2 } from 'lucide-react';
 import { getNotificationStyle } from '../constants/notificationStyles';
 import { useNotifications } from '../context/NotificationContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type Filter = 'all' | 'unread' | 'read';
 
@@ -13,6 +14,7 @@ const filters: { id: Filter; label: string }[] = [
 
 export function NotificationPage() {
   const { notifications, deleteNotification, markAllAsRead, markAsRead } = useNotifications();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<Filter>('all');
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
   const readCount = notifications.length - unreadCount;
@@ -31,10 +33,10 @@ export function NotificationPage() {
               <div className="rounded-lg bg-red-100 p-2.5">
                 <Bell className="h-5 w-5 text-red-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">알림</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t('알림')}</h1>
             </div>
             <p className="text-sm text-gray-600">
-              생성된 보고서와 교육 자료, 규정 업데이트를 확인하세요.
+              {t('생성된 보고서와 교육 자료, 규정 업데이트를 확인하세요.')}
             </p>
           </div>
           <button
@@ -43,21 +45,21 @@ export function NotificationPage() {
             disabled={unreadCount === 0}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
           >
-            모두 읽음 처리
+            {t('모두 읽음 처리')}
           </button>
         </div>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
           <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-4">
-            <p className="text-xs font-medium text-blue-700">전체</p>
+            <p className="text-xs font-medium text-blue-700">{t('전체')}</p>
             <p className="mt-1 text-2xl font-bold text-blue-950">{notifications.length}</p>
           </div>
           <div className="rounded-lg border border-red-100 bg-red-50/40 p-4">
-            <p className="text-xs font-medium text-red-600">안읽음</p>
+            <p className="text-xs font-medium text-red-600">{t('안읽음')}</p>
             <p className="mt-1 text-2xl font-bold text-red-950">{unreadCount}</p>
           </div>
           <div className="rounded-lg border border-green-100 bg-green-50/40 p-4">
-            <p className="text-xs font-medium text-green-700">읽음</p>
+            <p className="text-xs font-medium text-green-700">{t('읽음')}</p>
             <p className="mt-1 text-2xl font-bold text-green-950">{readCount}</p>
           </div>
         </div>
@@ -75,7 +77,7 @@ export function NotificationPage() {
                 : 'border border-gray-200 bg-white text-gray-700 hover:bg-blue-50'
             }`}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
@@ -83,7 +85,7 @@ export function NotificationPage() {
       <section className="space-y-3">
         {filtered.length === 0 ? (
           <div className="rounded-lg border border-dashed border-gray-300 bg-white/70 px-6 py-12 text-center text-gray-500">
-            표시할 알림이 없습니다.
+            {t('표시할 알림이 없습니다.')}
           </div>
         ) : (
           filtered.map((notification) => {
@@ -126,18 +128,18 @@ export function NotificationPage() {
                             : 'bg-red-50/70 text-red-600'
                         }`}
                       >
-                        {notification.isRead ? '읽음' : '안읽음'}
+                        {notification.isRead ? t('읽음') : t('안읽음')}
                       </span>
-                      <span className="text-xs text-gray-500">{notification.time}</span>
+                      <span className="text-xs text-gray-500">{t(notification.time)}</span>
                     </div>
                     <p
                       className={`font-semibold ${
                         notification.isRead ? 'text-gray-700' : 'text-gray-950'
                       }`}
                     >
-                      {notification.title}
+                      {t(notification.title)}
                     </p>
-                    <p className="mt-1 text-sm text-gray-600">{notification.desc}</p>
+                    <p className="mt-1 text-sm text-gray-600">{notification.desc ? t(notification.desc) : null}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span
@@ -152,8 +154,8 @@ export function NotificationPage() {
                         deleteNotification(notification.id);
                       }}
                       className="rounded-md p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                      aria-label={`${notification.title} 삭제`}
-                      title="삭제"
+                      aria-label={`${t(notification.title)} ${t('삭제')}`}
+                      title={t('삭제')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
