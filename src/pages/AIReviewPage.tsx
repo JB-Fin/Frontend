@@ -23,9 +23,15 @@ type ReviewWork = {
   reportUrl?: string | null; // 보고서 다운로드 URL (백에서 내려줄 경우)
 };
 
+type UploadedReviewFile = {
+  fileId: number;
+  fileName: string;
+};
+
 const supportedExtensions = ['pdf', 'docx', 'txt'];
 const reviewWorksStorageKey = 'jb_ai_review_recent_works';
 const libraryFilesStorageKey = 'jb_library_mock_files';
+const reviewWorksUpdatedEvent = 'jb-ai-review-works-updated';
 
 const statusConfig = {
   completed: {
@@ -98,6 +104,40 @@ function getReviewWorkKey(work: ReviewWork, index: number) {
     work.title,
     index,
   ].join('|');
+}
+
+function readStoredReviewWorks() {
+  try {
+    const savedWorks = localStorage.getItem(reviewWorksStorageKey);
+    if (!savedWorks) return [];
+
+    const parsedWorks = JSON.parse(savedWorks);
+    return Array.isArray(parsedWorks) ? parsedWorks as ReviewWork[] : [];
+  } catch (error) {
+    console.warn('최근 검토 내역을 불러오지 못했습니다.', error);
+    return [];
+  }
+}
+
+function notifyReviewWorksUpdated() {
+  window.dispatchEvent(new Event(reviewWorksUpdatedEvent));
+}
+
+function saveReviewWorks(works: ReviewWork[]) {
+  try {
+    localStorage.setItem(reviewWorksStorageKey, JSON.stringify(works));
+    notifyReviewWorksUpdated();
+  } catch (error) {
+    console.warn('최근 검토 내역을 저장하지 못했습니다.', error);
+  }
+}
+
+function upsertReviewWork(works: ReviewWork[], nextWork: ReviewWork) {
+  const exists = works.some((work) => work.id === nextWork.id);
+
+  if (!exists) return [nextWork, ...works];
+
+  return works.map((work) => (work.id === nextWork.id ? nextWork : work));
 }
 
 function saveReportMockFile(work: ReviewWork) {
@@ -259,6 +299,146 @@ function highlightSentence(text: string, sentences: string | string[]) {
   );
 }
 
+async function getReviewReportUrl(reviewId: number) {
+  try {
+    if (typeof (reviewApi as any).getReport !== 'function') return null;
+
+    const reportResponse = await (reviewApi as any).getReport(reviewId);
+    return (
+      reportResponse?.report_url ??
+      reportResponse?.file_url ??
+      reportResponse?.url ??
+      null
+    );
+  } catch (reportError) {
+    console.warn('보고서 URL 조회 실패, 텍스트 보고서로 대체합니다.', reportError);
+    return null;
+  }
+}
+
+function buildCompletedReviewWork(
+  reviewResponse: any,
+  uploadedFile: UploadedReviewFile,
+  reportUrl: string | null
+): ReviewWork {
+  const highlights = reviewResponse.highlights ?? [];
+  const firstHighlight = highlights[0] ?? {};
+  const riskSentences = highlights
+    .map((item: any) => item.original_text ?? item.highlight_text ?? '')
+    .filter((sentence: string) => sentence.trim().length > 0);
+
+  const originalText = highlights
+    .map((item: any, index: number) => `${index + 1}. ${item.original_text ?? item.highlight_text ?? ''}`)
+    .join('\n\n');
+
+  const revisedText = highlights
+    .map((item: any, index: number) => `${index + 1}. ${item.suggested_text ?? '수정 제안 없음'}`)
+    .join('\n\n');
+
+  const suggestionText = highlights
+    .map(
+      (item: any, index: number) =>
+        `${index + 1}. ${item.reason ?? item.revision_reason ?? item.issue_summary ?? '검토 사유 없음'}`
+    )
+    .join('\n\n');
+
+  return {
+    id: Number(reviewResponse.review_id ?? Date.now()),
+    title: getFileBaseName(uploadedFile.fileName),
+    requester: '김준또',
+    status: 'completed',
+    issues: Number(reviewResponse.summary?.total_issues ?? highlights.length ?? 0),
+    createdAt: reviewResponse.created_at ?? new Date().toISOString(),
+    fileName: uploadedFile.fileName,
+    originalDocument: originalText || '원본 문서 내용이 없습니다.',
+    revisedDocument: revisedText || '수정본 문서 내용이 없습니다.',
+    riskSentence:
+      riskSentences.join('\n\n') ||
+      (firstHighlight.original_text ?? firstHighlight.highlight_text ?? '위험 문장이 없습니다.'),
+    riskSentences,
+    suggestion: suggestionText || '수정 제안이 없습니다.',
+    reportUrl,
+  };
+}
+
+async function pollReviewInBackground({
+  reviewId,
+  uploadedFile,
+  pendingWork,
+  addNotification,
+}: {
+  reviewId: number;
+  uploadedFile: UploadedReviewFile;
+  pendingWork: ReviewWork;
+  addNotification: (notification: { title: string; desc?: string; type: 'review' }) => void;
+}) {
+  try {
+    let reviewResponse: any = null;
+
+    for (let i = 0; i < 20; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      reviewResponse = await reviewApi.getReview(reviewId);
+      console.log(`검토 결과 조회 ${i + 1}회차`, reviewResponse);
+
+      if (reviewResponse.status === 'completed' || reviewResponse.status === 'failed') break;
+    }
+
+    const currentWorks = readStoredReviewWorks();
+    const isStillVisible = currentWorks.some((work) => work.id === pendingWork.id);
+    if (!isStillVisible) return;
+
+    if (!reviewResponse || reviewResponse.status !== 'completed') {
+      saveReviewWorks(
+        upsertReviewWork(currentWorks, {
+          ...pendingWork,
+          status: 'needs-review',
+          suggestion: '분석 시간이 초과되었거나 문서 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+        })
+      );
+      addNotification({
+        title: 'AI 검토 실패',
+        desc: `${uploadedFile.fileName} 검토가 완료되지 않았습니다.`,
+        type: 'review',
+      });
+      return;
+    }
+
+    const reportUrl = await getReviewReportUrl(reviewId);
+    const completedWork = {
+      ...buildCompletedReviewWork(reviewResponse, uploadedFile, reportUrl),
+      id: pendingWork.id,
+    };
+    const latestWorks = readStoredReviewWorks();
+
+    if (!latestWorks.some((work) => work.id === pendingWork.id)) return;
+
+    saveReviewWorks(upsertReviewWork(latestWorks, completedWork));
+    saveReportMockFile(completedWork);
+    addNotification({
+      title: 'AI 검토 보고서 생성',
+      desc: `${buildDerivedFileName(uploadedFile.fileName, '검토보고서')}가 라이브러리에 저장되었습니다.`,
+      type: 'review',
+    });
+  } catch (error) {
+    console.error('백그라운드 검토 실패', error);
+    const currentWorks = readStoredReviewWorks();
+    if (!currentWorks.some((work) => work.id === pendingWork.id)) return;
+
+    saveReviewWorks(
+      upsertReviewWork(currentWorks, {
+        ...pendingWork,
+        status: 'needs-review',
+        suggestion: '검토 결과 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      })
+    );
+    addNotification({
+      title: 'AI 검토 실패',
+      desc: `${uploadedFile.fileName} 검토 결과를 가져오지 못했습니다.`,
+      type: 'review',
+    });
+  }
+}
+
 export function AIReviewPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { addNotification } = useNotifications();
@@ -314,6 +494,18 @@ export function AIReviewPage() {
       console.warn('최근 검토 내역을 저장하지 못했습니다.', error);
     }
   }, [works]);
+
+  useEffect(() => {
+    const syncWorks = () => setWorks(readStoredReviewWorks());
+
+    window.addEventListener(reviewWorksUpdatedEvent, syncWorks);
+    window.addEventListener('storage', syncWorks);
+
+    return () => {
+      window.removeEventListener(reviewWorksUpdatedEvent, syncWorks);
+      window.removeEventListener('storage', syncWorks);
+    };
+  }, []);
 
   const handleDeleteReview = (reviewId: number) => {
   const confirmed = window.confirm('이 검토 내역을 삭제하시겠습니까?');
@@ -381,6 +573,41 @@ export function AIReviewPage() {
       console.log('검토 요청 응답', analyzeResponse);
 
       const reviewId = analyzeResponse.review_id;
+      if (reviewId) {
+        const pendingWork: ReviewWork = {
+          id: Number(reviewId),
+          title: getFileBaseName(uploadedFile.fileName),
+          requester: '김준또',
+          status: 'in-progress',
+          issues: 0,
+          createdAt: new Date().toISOString(),
+          fileName: uploadedFile.fileName,
+          originalDocument: 'AI 검토가 진행 중입니다.',
+          revisedDocument: 'AI 검토가 완료되면 수정본이 표시됩니다.',
+          riskSentence: 'AI 검토가 진행 중입니다.',
+          riskSentences: [],
+          suggestion: 'AI 검토가 완료되면 수정 제안 근거가 표시됩니다.',
+          reportUrl: null,
+        };
+        const nextWorks = upsertReviewWork(readStoredReviewWorks(), pendingWork);
+
+        saveReviewWorks(nextWorks);
+        setWorks(nextWorks);
+        setUploadedFile(null);
+        addNotification({
+          title: 'AI 검토 시작',
+          desc: `${uploadedFile.fileName} 검토를 백그라운드에서 진행합니다.`,
+          type: 'review',
+        });
+
+        void pollReviewInBackground({
+          reviewId: Number(reviewId),
+          uploadedFile,
+          pendingWork,
+          addNotification,
+        });
+        return;
+      }
       if (!reviewId) throw new Error('review_id를 받지 못했습니다.');
 
       // 2. 검토 완료 폴링
