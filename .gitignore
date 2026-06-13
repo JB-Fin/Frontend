@@ -151,3 +151,4 @@ dist/
 *.pem
 *.key
 *.ppk
+/.vscode
