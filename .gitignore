@@ -151,4 +151,4 @@ dist/
 *.pem
 *.key
 *.ppk
-/.vscode
+.vscode/
