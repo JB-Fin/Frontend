@@ -187,21 +187,30 @@ async function downloadReport(work: ReviewWork) {
   downloadTextFile(buildDerivedFileName(work.fileName, '검토보고서'), lines.join('\n'));
 }
 
+function formatNumberedSentences(text: string) {
+  return text
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]*\n+[ \t]*/g, '\n')
+    .replace(/(?!^)\s+(\d+\.\s+)/g, '\n$1')
+    .trim();
+}
+
 function highlightSentence(text: string, sentences: string | string[]) {
+  const displayText = formatNumberedSentences(text);
   const targets = (Array.isArray(sentences) ? sentences : [sentences])
     .map((sentence) => sentence.trim())
     .filter(Boolean)
     .sort((a, b) => b.length - a.length);
 
-  if (targets.length === 0) return text;
+  if (targets.length === 0) return displayText;
 
   const ranges: Array<{ start: number; end: number; text: string }> = [];
 
   targets.forEach((target) => {
     let searchFrom = 0;
 
-    while (searchFrom < text.length) {
-      const start = text.indexOf(target, searchFrom);
+    while (searchFrom < displayText.length) {
+      const start = displayText.indexOf(target, searchFrom);
       if (start === -1) break;
 
       const end = start + target.length;
@@ -224,7 +233,7 @@ function highlightSentence(text: string, sentences: string | string[]) {
 
   ranges.forEach((range, index) => {
     if (cursor < range.start) {
-      parts.push(text.slice(cursor, range.start));
+      parts.push(displayText.slice(cursor, range.start));
     }
 
     parts.push(
@@ -239,8 +248,8 @@ function highlightSentence(text: string, sentences: string | string[]) {
     cursor = range.end;
   });
 
-  if (cursor < text.length) {
-    parts.push(text.slice(cursor));
+  if (cursor < displayText.length) {
+    parts.push(displayText.slice(cursor));
   }
 
   return (
@@ -771,7 +780,7 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-white/80 p-4">
               <p className="mb-2 text-sm font-semibold text-gray-900">위험문장 하이라이트</p>
-              <p className="text-sm leading-7 text-gray-700">
+              <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
                 {highlightSentence(
                   work.originalDocument,
                   work.riskSentences?.length ? work.riskSentences : work.riskSentence
@@ -780,7 +789,9 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
             </div>
             <div className="rounded-lg bg-white/80 p-4">
               <p className="mb-2 text-sm font-semibold text-gray-900">수정 제안 근거</p>
-              <p className="text-sm leading-7 text-gray-700">{work.suggestion}</p>
+              <p className="whitespace-pre-wrap text-sm leading-7 text-gray-700">
+                {formatNumberedSentences(work.suggestion)}
+              </p>
             </div>
           </div>
         </section>
@@ -832,8 +843,8 @@ function DocumentPanel({
           다운로드
         </button>
       </div>
-      <div className="min-h-72 rounded-lg bg-gray-50 p-4 text-sm leading-7 text-gray-700">
-        {content}
+      <div className="min-h-72 whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm leading-7 text-gray-700">
+        {formatNumberedSentences(content)}
       </div>
     </section>
   );
