@@ -329,7 +329,7 @@ useEffect(() => {
                       message.type === 'user' ? 'ml-auto' : ''
                     }`}
                   >
-                    {message.type === 'ai' ? 'AI assistant' : '김준또'}
+                    {message.type === 'ai' ? 'AI assistant' : '박준호'}
                   </span>
                   <span className="text-sm text-gray-500">{message.timestamp}</span>
                 </div>

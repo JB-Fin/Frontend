@@ -173,14 +173,14 @@ export function TopBar() {
         <button
           type="button"
           onClick={() => toggleMenu('profile')}
-          className="flex h-11 w-48 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:bg-blue-50"
+          className="flex h-11 w-52 items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 text-[#082064] shadow-sm shadow-blue-900/5 transition-all hover:border-blue-300 hover:bg-blue-50"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#082064] to-[#2f74ff] shadow-sm">
             <User className="h-4 w-4 text-white" />
           </div>
           <div className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 text-center md:flex">
-            <span className="shrink-0 text-xs font-semibold text-blue-700">{t('법무팀')}</span>
-            <span className="truncate text-sm font-semibold text-[#082064]">{t('김준법')}</span>
+            <span className="shrink-0 text-xs font-semibold text-blue-700">{t('준법감시부')}</span>
+            <span className="truncate text-sm font-semibold text-[#082064]">{t('박준호')}</span>
           </div>
           <ChevronDown className="h-4 w-4 text-blue-600" />
         </button>
@@ -189,8 +189,8 @@ export function TopBar() {
             <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} />
             <div className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg border border-white/60 bg-white/95 shadow-2xl backdrop-blur-md">
               <div className="border-b border-gray-200/50 px-4 py-3">
-                <p className="font-medium text-gray-900">{t('김준법')}</p>
-                <p className="text-xs text-gray-600">junbeop@jbgroup.com</p>
+                <p className="font-medium text-gray-900">{t('박준호')}</p>
+                <p className="text-xs text-gray-600">junho.park@jbgroup.com</p>
               </div>
               <div className="py-2">
                 <button

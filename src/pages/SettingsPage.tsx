@@ -76,17 +76,17 @@ function ProfileSettings() {
             <User className="h-10 w-10 text-white" />
           </div>
           <div>
-            <p className="font-semibold text-gray-900">김준법</p>
-            <p className="mt-1 text-sm text-gray-500">법무팀 · 책임매니저</p>
+            <p className="font-semibold text-gray-900">박준호</p>
+            <p className="mt-1 text-sm text-gray-500">준법감시부 · 과장</p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 max-lg:grid-cols-1">
           {[
-            ['이름', '김준법', 'text'],
-            ['이메일', 'junbeop@jbgroup.com', 'email'],
-            ['부서', '법무팀', 'text'],
-            ['직책', '책임매니저', 'text'],
+            ['이름', '박준호', 'text'],
+            ['이메일', 'junho.park@jbgroup.com', 'email'],
+            ['부서', '준법감시부', 'text'],
+            ['직책', '과장', 'text'],
           ].map(([label, value, type]) => (
             <label key={label} className="block">
               <span className="mb-2 block text-sm font-medium text-gray-700">{label}</span>
@@ -112,11 +112,11 @@ function ProfileSettings() {
         <dl className="space-y-3 text-sm">
           <div>
             <dt className="text-gray-500">소속</dt>
-            <dd className="mt-1 font-semibold text-gray-900">준법감시부 법무팀</dd>
+            <dd className="mt-1 font-semibold text-gray-900">준법감시부</dd>
           </div>
           <div>
             <dt className="text-gray-500">권한</dt>
-            <dd className="mt-1 font-semibold text-gray-900">법무 검토 권한</dd>
+            <dd className="mt-1 font-semibold text-gray-900">준법 자문 권한</dd>
           </div>
           <div>
             <dt className="text-gray-500">상태</dt>
