@@ -1,5 +1,6 @@
 import { fileApi } from '../services/fileApi';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { reviewApi } from '../services/reviewApi';
 import { useNotifications } from '../context/NotificationContext';
 import type { ChangeEvent, DragEvent, MouseEvent } from 'react';
@@ -32,6 +33,8 @@ const supportedExtensions = ['pdf', 'docx', 'txt'];
 const reviewWorksStorageKey = 'jb_ai_review_recent_works';
 const libraryFilesStorageKey = 'jb_library_mock_files';
 const reviewWorksUpdatedEvent = 'jb-ai-review-works-updated';
+const currentRequesterName = '박준호';
+const legacyRequesterNames = ['김준' + '또', '김준법'];
 
 const statusConfig = {
   completed: {
@@ -108,13 +111,20 @@ function getReviewWorkKey(work: ReviewWork, index: number) {
   ].join('|');
 }
 
+function normalizeReviewWork(work: ReviewWork) {
+  return {
+    ...work,
+    requester: legacyRequesterNames.includes(work.requester) ? currentRequesterName : work.requester,
+  };
+}
+
 function readStoredReviewWorks() {
   try {
     const savedWorks = localStorage.getItem(reviewWorksStorageKey);
     if (!savedWorks) return [];
 
     const parsedWorks = JSON.parse(savedWorks);
-    return Array.isArray(parsedWorks) ? parsedWorks as ReviewWork[] : [];
+    return Array.isArray(parsedWorks) ? (parsedWorks as ReviewWork[]).map(normalizeReviewWork) : [];
   } catch (error) {
     console.warn('최근 검토 내역을 불러오지 못했습니다.', error);
     return [];
@@ -347,7 +357,7 @@ function buildCompletedReviewWork(
   return {
     id: Number(reviewResponse.review_id ?? Date.now()),
     title: getFileBaseName(uploadedFile.fileName),
-    requester: '김준또',
+    requester: currentRequesterName,
     status: 'completed',
     issues: Number(reviewResponse.summary?.total_issues ?? highlights.length ?? 0),
     createdAt: reviewResponse.created_at ?? new Date().toISOString(),
@@ -452,7 +462,7 @@ export function AIReviewPage() {
       if (!savedWorks) return [];
 
       const parsedWorks = JSON.parse(savedWorks);
-      return Array.isArray(parsedWorks) ? parsedWorks : [];
+      return Array.isArray(parsedWorks) ? (parsedWorks as ReviewWork[]).map(normalizeReviewWork) : [];
     } catch (error) {
       console.warn('최근 검토 내역을 불러오지 못했습니다.', error);
       return [];
@@ -579,7 +589,7 @@ export function AIReviewPage() {
         const pendingWork: ReviewWork = {
           id: Number(reviewId),
           title: getFileBaseName(uploadedFile.fileName),
-          requester: '김준또',
+          requester: currentRequesterName,
           status: 'in-progress',
           issues: 0,
           createdAt: new Date().toISOString(),
@@ -686,7 +696,7 @@ export function AIReviewPage() {
       const newWork: ReviewWork = {
         id: Number(reviewResponse.review_id ?? Date.now()),
         title: getFileBaseName(uploadedFile.fileName),
-        requester: '김준또',
+        requester: currentRequesterName,
         status: 'completed',
         issues: Number(reviewResponse.summary?.total_issues ?? highlights.length ?? 0),
         createdAt: reviewResponse.created_at ?? new Date().toISOString(),
@@ -962,9 +972,18 @@ function ReviewWorkCard({
 }
 
 function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () => void }) {
-  return (
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/40 px-6 py-8 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-950/60 px-6 py-8 backdrop-blur-md"
       onClick={onClose}
     >
       <div
@@ -1040,7 +1059,8 @@ function ReviewDetailModal({ work, onClose }: { work: ReviewWork; onClose: () =>
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

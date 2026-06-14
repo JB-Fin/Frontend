@@ -20,22 +20,6 @@ interface NotificationContextType {
 
 const defaultNotifications: NotificationItem[] = [
   {
-    id: 'education-poster-created',
-    title: '교육 포스터 생성 완료',
-    desc: '금융소비자보호법_교육포스터.png가 라이브러리에 저장되었습니다.',
-    time: '방금',
-    isRead: false,
-    type: 'education',
-  },
-  {
-    id: 'education-ppt-created',
-    title: '교육 자료 생성 완료',
-    desc: '금융소비자보호법_교육자료.pptx가 라이브러리에 저장되었습니다.',
-    time: '5분 전',
-    isRead: false,
-    type: 'library',
-  },
-  {
     id: 'review-report-created',
     title: 'AI 검토 보고서 생성',
     desc: '광고시안_Ver2_검토보고서.txt가 라이브러리에 저장되었습니다.',

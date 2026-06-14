@@ -39,7 +39,7 @@ function saveReviewResult(file: File) {
   const newWork = {
     id,
     title,
-    requester: '김준법',
+    requester: '박준호',
     status: 'completed',
     issues: 1,
     createdAt: new Date().toISOString(),
